@@ -1,6 +1,8 @@
 "use client";
 import dynamic from "next/dynamic";
 import RoadLookup from "./road-lookup";
+import ActiveNavigation from "./active-navigation";
+import { isValidNavigationRequest, type NavigationRequest } from "@/lib/navigation-progress";
 import OfficialWeatherPanel from "./official-weather-panel";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -58,6 +60,8 @@ export default function Dashboard() {
   const [radarError, setRadarError] = useState("");
   const radar = radarFrames[clampRadarIndex(radarIndex, radarFrames.length)] ?? null;
   const [gps, setGps] = useState<{ point: Point; accuracy: number } | null>(null);
+  const [navigationRequest, setNavigationRequest] = useState<NavigationRequest | null>(null);
+  const [navigationFollowing, setNavigationFollowing] = useState(true);
   const [locating, setLocating] = useState(false);
   const [gpsError, setGpsError] = useState("");
   const routingSequence = useRef(0);
@@ -94,6 +98,25 @@ export default function Dashboard() {
   const [userId, setUserId] = useState<string | null>(null);
   const [supabaseClient] = useState(browserDb);
   const db = useRef(supabaseClient);
+  useEffect(() => {
+    const begin = (event: Event) => {
+      const payload = (event as CustomEvent<unknown>).detail;
+      if (!isValidNavigationRequest(payload)) return;
+      setNavigationFollowing(true);
+      setNavigationRequest(payload);
+      setGps(null); // Discard any old manual GPS fix before starting a new live watch.
+      setShowRoute(false);
+      setMobilePanel(false);
+    };
+    const follow = (event: Event) => setNavigationFollowing((event as CustomEvent<boolean>).detail === true);
+    window.addEventListener("citypass:start-navigation", begin);
+    window.addEventListener("citypass:nav-follow", follow);
+    return () => {
+      window.removeEventListener("citypass:start-navigation", begin);
+      window.removeEventListener("citypass:nav-follow", follow);
+    };
+  }, []);
+
   useEffect(() => {
     const query = window.matchMedia("(max-width: 760px)");
     const onResize = () => setIsCompact(query.matches);
@@ -371,7 +394,8 @@ export default function Dashboard() {
         <div style={{ marginTop: 20, fontSize: 10, color: "#729087", lineHeight: 1.7 }}>Nguồn lớp mưa: <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "underline" }}>Open-Meteo</a> / OpenWeatherMap. Thời tiết khu vực theo ô lưới mô hình, không phải trạm đo. Thời tiết mô hình: <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "underline" }}>Open-Meteo</a>. Nền bản đồ: © OpenStreetMap. Dữ liệu có thể trễ hoặc không bao phủ toàn bộ khu vực.</div>
       </div></aside>
       <section className="map-space" aria-label="Bản đồ mưa và sự cố ngập">
-        <MapView weatherAreas={(layers.weather || layers.radar) ? weatherAreas : []} showWeatherMarkers={layers.weather} selectedWeatherId={selectedWeatherId} onSelectWeather={area => { setSelectedWeatherId(area.id); }} trafficEnabled={layers.traffic && trafficData?.configured === true} trafficPoints={layers.traffic ? trafficData?.points ?? [] : []} onSelectTraffic={point => { setSelectedTrafficId(point.id); }} incidents={visible} cameras={layers.cameras ? cameras : []} rain={layers.radar} radar={radar} radarOpacity={radarOpacity} gps={gps} focus={focus} pickMode={pickMode} onPick={onPick} onMove={onMove} onSelectIncident={item => { setSelectedIncident(item); setDialog("incident"); }} onSelectCamera={item => { setSelectedCamera(item); setDialog("camera"); }} routes={routes} selectedRoute={selectedRoute} from={from} to={to} />
+        {navigationRequest && <ActiveNavigation request={navigationRequest} gps={gps} onGps={setGps} onStop={() => setNavigationRequest(null)} />}
+        <MapView weatherAreas={(layers.weather || layers.radar) ? weatherAreas : []} showWeatherMarkers={layers.weather} selectedWeatherId={selectedWeatherId} onSelectWeather={area => { setSelectedWeatherId(area.id); }} trafficEnabled={layers.traffic && trafficData?.configured === true} trafficPoints={layers.traffic ? trafficData?.points ?? [] : []} onSelectTraffic={point => { setSelectedTrafficId(point.id); }} incidents={visible} cameras={layers.cameras ? cameras : []} rain={layers.radar} radar={radar} radarOpacity={radarOpacity} gps={gps} navigationFollowing={!!navigationRequest && navigationFollowing} focus={focus} pickMode={pickMode} onPick={onPick} onMove={onMove} onSelectIncident={item => { setSelectedIncident(item); setDialog("incident"); }} onSelectCamera={item => { setSelectedCamera(item); setDialog("camera"); }} routes={routes} selectedRoute={selectedRoute} from={from} to={to} />
         {layers.radar && <div className="citypass-rain-map-note" role="status" aria-live="polite">
           <span className="citypass-rain-map-swatch" aria-hidden="true" />
           <span><strong>Vùng mưa ước tính đã bật</strong>

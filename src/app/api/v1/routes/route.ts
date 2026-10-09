@@ -8,9 +8,9 @@ type UpstreamRoute = { distance: number; duration: number; geometry: { coordinat
 type Hazard = { id: string; severity: number; latitude: number; longitude: number; status: string; type?: string };
 type Candidate = { distance: number; duration: number; coords: [number, number][]; delay?: number };
 
-async function tomtomCandidates(from: [number, number], to: [number, number], key: string): Promise<Candidate[]> {
+async function tomtomCandidates(from: [number, number], to: [number, number], key: string, vehicle: "motorcycle" | "car"): Promise<Candidate[]> {
   const url = new URL(`https://api.tomtom.com/routing/1/calculateRoute/${from[0]},${from[1]}:${to[0]},${to[1]}/json`);
-  url.search = new URLSearchParams({ key, traffic: "true", departAt: "now", routeType: "fastest", maxAlternatives: "2", travelMode: "motorcycle", routeRepresentation: "polyline" }).toString();
+  url.search = new URLSearchParams({ key, traffic: "true", departAt: "now", routeType: "fastest", maxAlternatives: "2", travelMode: vehicle === "car" ? "car" : "motorcycle", routeRepresentation: "polyline" }).toString();
   const response = await fetch(url, { signal: AbortSignal.timeout(8500), cache: "no-store" });
   if (!response.ok) throw Error(`TomTom Routing lỗi HTTP ${response.status}`);
   const body = await response.json() as { routes?: { summary?: { lengthInMeters?: number; travelTimeInSeconds?: number; trafficDelayInSeconds?: number }; legs?: { points?: { latitude: number; longitude: number }[] }[] }[] };
@@ -40,6 +40,8 @@ async function osrmCandidates(from: [number, number], to: [number, number]): Pro
 }
 export async function GET(req: NextRequest) {
   const p = req.nextUrl.searchParams;
+  const vehicle = p.get("vehicle") ?? "motorcycle";
+  if (vehicle !== "motorcycle" && vehicle !== "car") return jsonError("Phương tiện không hợp lệ", 400);
   const a = getNumber(p.get("from_lat"), -90, 90), b = getNumber(p.get("from_lng"), -180, 180);
   const c = getNumber(p.get("to_lat"), -90, 90), d = getNumber(p.get("to_lng"), -180, 180);
   if ([a,b,c,d].some(n => n === null)) return jsonError("Tọa độ không hợp lệ");
@@ -51,7 +53,7 @@ export async function GET(req: NextRequest) {
   const key = process.env.TOMTOM_API_KEY?.trim();
   if (key) {
     try {
-      options = await tomtomCandidates(from, to, key);
+      options = await tomtomCandidates(from, to, key, vehicle);
       if (!options.length) throw Error("TomTom không trả tuyến hợp lệ");
       trafficAware = true; warning = "TomTom xe máy (beta): ETA có xét giao thông; có thể thiếu dữ liệu giới hạn đường, không bảo đảm tránh ngập.";
     } catch { warning = "TomTom xe máy chưa sẵn sàng; dùng OSRM ô tô dự phòng, KHÔNG có ETA theo kẹt xe."; }
@@ -74,6 +76,6 @@ export async function GET(req: NextRequest) {
     });
     // Flood risk always takes precedence over ETA when reliable incident data exist.
     routes.sort((x, y) => x.risk_score - y.risk_score || x.duration_s - y.duration_s);
-    return NextResponse.json({ routes, traffic_aware: trafficAware, routing_provider: trafficAware ? "TomTom motorcycle beta" : "OSRM car fallback", warning, flood_data_available: isDatabaseReady, disclaimer: "Không bảo đảm tuyến an toàn hoặc không ngập. TomTom xe máy đang thử nghiệm; OSRM dự phòng dùng hồ sơ ô tô." }, { headers: { "Cache-Control": "no-store" } });
+    return NextResponse.json({ routes, traffic_aware: trafficAware, routing_provider: trafficAware ? `TomTom Traffic (${vehicle})` : "OSRM driving fallback", warning, flood_data_available: isDatabaseReady, disclaimer: "Không bảo đảm tuyến an toàn hoặc không ngập. TomTom xe máy đang thử nghiệm; OSRM dự phòng dùng hồ sơ ô tô." }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) { return jsonError(error instanceof Error ? error.message : "Dịch vụ định tuyến chưa sẵn sàng", 503); }
 }

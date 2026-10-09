@@ -23,6 +23,7 @@ type Props = {
   radar: { tile_url: string; time: number } | null;
   radarOpacity: number;
   gps: { point: Point; accuracy: number } | null;
+  navigationFollowing?: boolean;
   focus: Point | null;
   pickMode: "from" | "to" | "report" | null;
   onPick: (point: Point) => void;
@@ -44,6 +45,19 @@ function Events({ onPick, onMove, pickMode }: Pick<Props, "onPick" | "onMove" | 
 function Focus({ point }: { point: Point | null }) {
   const map = useMap();
   useEffect(() => { if (point) map.flyTo(point, Math.max(map.getZoom(), 13), { duration: 0.5 }); }, [point, map]);
+  return null;
+}
+function FollowNavigationGps({ gps, active }: { gps: Props["gps"]; active: boolean }) {
+  const map = useMap();
+  const previous = useRef(false);
+  useEffect(() => {
+    if (!active) { previous.current = false; return; }
+    if (!gps) return;
+    if (!previous.current) {
+      map.setView(gps.point, Math.max(map.getZoom(), 15), { animate: false });
+      previous.current = true;
+    } else { map.panTo(gps.point, { animate: false }); }
+  }, [active, gps, map]);
   return null;
 }
 function FitSelectedRoute({ routes, selectedRoute }: Pick<Props, "routes" | "selectedRoute">) {
@@ -345,6 +359,7 @@ export default function MapView(props: Props) {
     />}
     <Events onPick={props.onPick} onMove={props.onMove} pickMode={props.pickMode} />
     <Focus point={props.focus} />
+    <FollowNavigationGps gps={props.gps} active={Boolean(props.navigationFollowing)} />
     <FitSelectedRoute routes={props.routes} selectedRoute={props.selectedRoute} />
     <ZoomControl position="bottomright" />
     {props.gps && <>

@@ -642,3 +642,27 @@ button:focus-visible, input:focus-visible, a:focus-visible, textarea:focus-visib
   .citypass-rain-map-note strong { font-size: 11px; }
   .citypass-rain-map-note small { font-size: 10px; }
 }
+
+/* CityPass live navigation v1.2.0 */
+.citypass-journey-vehicle { display:grid; grid-template-columns:1fr minmax(0, 145px); align-items:center; gap:10px; font-size:12px; font-weight:800; color:#1c5145; padding:9px 10px; background:#eef7f3; border-radius:12px; }
+.citypass-journey-vehicle select { min-height:42px; border:1px solid #94c9b8; background:white; border-radius:10px; padding:0 10px; color:#155445; font:inherit; }
+.citypass-journey-start { display:flex; gap:9px; justify-content:center; align-items:center; background:#9d21af; color:#fff; border:none; border-radius:12px; min-height:48px; padding:10px; font-size:13px; font-weight:800; }
+.citypass-journey-start:focus-visible, .citypass-journey-google:focus-visible { outline:3px solid #f3b0ff; outline-offset:2px; }
+.citypass-active-navigation { position:absolute; right:66px; top:12px; z-index:800; width:min(330px,calc(100% - 24px)); max-height:calc(100% - 24px); overflow:auto; overscroll-behavior:contain; background:rgba(255,255,255,.98); border:1px solid #d6b7e9; border-radius:16px; box-shadow:0 14px 38px #2a173b2c; padding:13px; color:#233c34; }
+.citypass-nav-header { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.citypass-nav-header strong { display:flex; gap:8px; align-items:center; color:#8e269e; font-size:14px; }
+.citypass-nav-header button { width:38px; height:38px; display:grid; place-items:center; border-radius:10px; background:#f7eef9; }
+.citypass-nav-metrics { display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:8px 2px; }
+.citypass-nav-metrics div { display:grid; gap:3px; } .citypass-nav-metrics span { font-size:10px; color:#6b7d77; }
+.citypass-nav-metrics b { font-size:20px; color:#243f39; }
+.citypass-nav-track { height:7px; background:#eadcf4; border-radius:20px; overflow:hidden; } .citypass-nav-track span { height:100%; display:block; background:#9d21af; border-radius:20px; transition:width .25s; }
+.citypass-nav-advice { font-size:12px; line-height:1.5; margin:10px 0; }
+.citypass-active-navigation small { display:flex; align-items:center; gap:5px; color:#627c74; font-size:10px; }
+.citypass-nav-actions { display:grid; grid-template-columns:1fr; gap:7px; margin-top:10px; }
+.citypass-nav-actions button, .citypass-nav-actions a { display:flex; align-items:center; justify-content:center; gap:5px; text-align:center; min-height:40px; padding:8px; border-radius:10px; font-size:12px; font-weight:750; }
+.citypass-nav-actions button { border:1px solid #bedbd0; background:#f5fbf8; }
+.citypass-nav-actions a { background:#126f5d; color:#fff; text-decoration:none; }
+.citypass-nav-disclaimer { display:flex; gap:5px; line-height:1.45; font-size:10px; color:#806850; margin:9px 0 0; }
+.citypass-nav-disclaimer svg { flex-shrink:0; }
+@media(max-width:760px) { .citypass-active-navigation { position:absolute; top:auto; bottom:73px; left:10px; right:10px; width:auto; max-height:min(48dvh,350px); padding:11px; border-radius:15px; } .citypass-nav-metrics b { font-size:18px; } .citypass-nav-actions { grid-template-columns:1fr 1fr; } .citypass-nav-actions a, .citypass-nav-actions button { font-size:11px; } }
+@media(prefers-reduced-motion:reduce) { .citypass-nav-track span { transition:none; } }

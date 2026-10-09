@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Check, CloudRain, ExternalLink, LoaderCircle, MapPin, Navigation, Route, ShieldAlert, TrafficCone } from "lucide-react";
 import { buildGoogleMapsDirectionsUrl } from "@/lib/google-maps";
 import type { JourneyRoute } from "@/lib/journey-analysis";
+import type { NavigationRequest, VehicleMode } from "@/lib/navigation-progress";
 import type { RouteOption } from "@/lib/types";
 
 type Point = [number, number];
@@ -76,6 +77,7 @@ export default function JourneyPlanner({ fromRoad, onPreview, onFocus, onShowMap
   const [results, setResults] = useState<JourneyResponse | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [followCorridor, setFollowCorridor] = useState(true);
+  const [vehicleMode, setVehicleMode] = useState<VehicleMode>("motorcycle");
   const searchSeq = useRef(0);
   const journeyAbort = useRef<AbortController | null>(null);
   const destinationRef = useRef<HTMLInputElement | null>(null);
@@ -88,7 +90,7 @@ export default function JourneyPlanner({ fromRoad, onPreview, onFocus, onShowMap
       if (!raw) return;
       const saved = JSON.parse(raw) as {
         query?: string; destination?: Road | null; results?: JourneyResponse | null;
-        selectedId?: string | null; followCorridor?: boolean;
+        selectedId?: string | null; followCorridor?: boolean; vehicleMode?: VehicleMode;
       };
       if (saved.destination && typeof saved.destination.id === "string" &&
           Number.isFinite(saved.destination.lat) && Number.isFinite(saved.destination.lng)) {
@@ -103,20 +105,21 @@ export default function JourneyPlanner({ fromRoad, onPreview, onFocus, onShowMap
         }
       } else if (typeof saved.query === "string") setQuery(saved.query);
       if (typeof saved.followCorridor === "boolean") setFollowCorridor(saved.followCorridor);
+      if (saved.vehicleMode === "motorcycle" || saved.vehicleMode === "car") setVehicleMode(saved.vehicleMode);
     } catch { /* Stale browser data must not break route search. */ }
     finally { setJourneyRestored(true); }
   }, [journeyStorageKey]);
   useEffect(() => {
     if (!journeyRestored) return;
     try {
-      const snapshot = { query, destination, results, selectedId, followCorridor };
+      const snapshot = { query, destination, results, selectedId, followCorridor, vehicleMode };
       const serialized = JSON.stringify(snapshot);
       // Preserve destination even when the route geometry exceeds storage limits.
       if (serialized.length <= 1700000) window.sessionStorage.setItem(journeyStorageKey, serialized);
       else window.sessionStorage.setItem(journeyStorageKey,
-        JSON.stringify({ query, destination, results: null, selectedId: null, followCorridor }));
+        JSON.stringify({ query, destination, results: null, selectedId: null, followCorridor, vehicleMode }));
     } catch { /* Storage may be disabled. Current in-memory state still works. */ }
-  }, [journeyRestored, journeyStorageKey, query, destination, results, selectedId, followCorridor]);
+  }, [journeyRestored, journeyStorageKey, query, destination, results, selectedId, followCorridor, vehicleMode]);
 
 
   useEffect(() => {
@@ -160,7 +163,7 @@ export default function JourneyPlanner({ fromRoad, onPreview, onFocus, onShowMap
     setRouteBusy(true); setResults(null); setError("");
     const params = new URLSearchParams({
       from_lat: String(fromRoad.lat), from_lng: String(fromRoad.lng),
-      to_lat: String(destination.lat), to_lng: String(destination.lng)
+      to_lat: String(destination.lat), to_lng: String(destination.lng), vehicle: vehicleMode
     });
     try {
       const response = await fetch(`/api/v1/roads/journey?${params}`, { signal: controller.signal, cache: "no-store" });
@@ -181,7 +184,7 @@ export default function JourneyPlanner({ fromRoad, onPreview, onFocus, onShowMap
   const current = results?.routes.find(r => r.id === selectedId) ?? null;
   const url = destination && current ? buildGoogleMapsDirectionsUrl({
     from: [fromRoad.lat, fromRoad.lng], to: [destination.lat, destination.lng],
-    geometry: current.geometry, mode: "two-wheeler", includeWaypoints: followCorridor
+    geometry: current.geometry, mode: vehicleMode === "car" ? "driving" : "two-wheeler", includeWaypoints: followCorridor
   }) : null;
 
   return <section className="citypass-journey" aria-label="Lên kế hoạch chuyến đi tránh ngập mưa kẹt xe">
@@ -204,6 +207,7 @@ export default function JourneyPlanner({ fromRoad, onPreview, onFocus, onShowMap
       </button>)}
     </div>}
     {destination && <div className="citypass-journey-destination">Đến: <strong>{destination.name}</strong> · {destination.district}<small className={`citypass-geocode-precision ${destination.precision ?? "street"}`}>{destination.precision_label ?? "Vị trí cần xác nhận"}</small></div>}
+    <div className="citypass-journey-vehicle"><label htmlFor="citypass-vehicle">Chọn phương tiện</label><select id="citypass-vehicle" value={vehicleMode} onChange={e => { const value = e.target.value as VehicleMode; setVehicleMode(value); setResults(null); setSelectedId(null); setError("Đã đổi phương tiện. Hãy tính tuyến lại để cập nhật lộ trình phù hợp."); }}><option value="motorcycle">Xe máy</option><option value="car">Ô tô</option></select></div>
     <button type="button" className="citypass-journey-plan" disabled={!destination || routeBusy} onClick={() => void plan()}>
       {routeBusy ? <><LoaderCircle size={17} className="citypass-spin"/> Đang so sánh các tuyến...</> : <><Route size={17}/> Tìm tuyến hạn chế mưa, ngập, kẹt xe</>}
     </button>
@@ -227,8 +231,15 @@ export default function JourneyPlanner({ fromRoad, onPreview, onFocus, onShowMap
       </div>
       {current && <div className="citypass-journey-handoff"><p className="citypass-journey-route-key">Tuyến đang chọn: hồng tím viền trắng. Tuyến thay thế: nét xám đứt.</p>
         <button type="button" className="citypass-journey-preview" onClick={() => { if (current && results) preview(current, results); onShowMap(); }}><Route size={16}/> Xem tuyến đã chọn trên bản đồ CityPass</button>
+        <button type="button" className="citypass-journey-start" onClick={() => {
+          if (!current || !destination || !results) return;
+          const payload: NavigationRequest = { routeId: current.id, geometry: current.geometry, from: [fromRoad.lat, fromRoad.lng], to: [destination.lat, destination.lng], vehicle: vehicleMode, durationSeconds: current.duration_s, distanceMeters: current.distance_m, trafficAware: results.traffic_aware, floodDataAvailable: results.flood_data_available };
+          preview(current, results);
+          window.dispatchEvent(new CustomEvent("citypass:start-navigation", { detail: payload }));
+          onShowMap();
+        }}><Navigation size={17}/> Bắt đầu theo dõi trên CityPass</button>
         <label className="citypass-journey-waypoints"><input type="checkbox" checked={followCorridor} onChange={e => setFollowCorridor(e.target.checked)}/> Gửi tối đa 3 điểm trung gian theo tuyến CityPass</label>
-        {url && <a href={url} target="_blank" rel="noopener noreferrer" className="citypass-journey-google"><Navigation size={18}/> Dẫn đường xe máy bằng Google Maps <ExternalLink size={15}/></a>}
+        {url && <a href={url} target="_blank" rel="noopener noreferrer" className="citypass-journey-google"><Navigation size={18}/> Bắt đầu đi bằng Google Maps · {vehicleMode === "car" ? "Ô tô" : "Xe máy"} <ExternalLink size={15}/></a>}
         <p>Google Maps <strong>tự tính lại đường</strong>, có thể khác tuyến CityPass. Không bảo đảm tránh ngập/mưa hoặc đúng luật xe máy trên từng đoạn.</p>
       </div>}
       {!results.weather_available && <p className="citypass-journey-caution">Thiếu dữ liệu mưa dọc tuyến: xếp hạng hiện không phân biệt mưa.</p>}

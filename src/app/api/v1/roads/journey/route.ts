@@ -40,6 +40,8 @@ async function readRainAt(points: Point[]): Promise<RainSample[]> {
 
 export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams;
+  const vehicle = params.get("vehicle") ?? "motorcycle";
+  if (vehicle !== "motorcycle" && vehicle !== "car") return NextResponse.json({ error: "Loại phương tiện không hợp lệ" }, { status: 400 });
   const from = inputPoint(params, "from"), to = inputPoint(params, "to");
   if (!from || !to || haversineMeters(from, to) < 30 || haversineMeters(from, to) > 60_000) {
     return NextResponse.json({ error: "Chọn hai điểm khác nhau tại TP.HCM, cách nhau từ 30 m đến 60 km." }, { status: 400 });
@@ -47,7 +49,7 @@ export async function GET(request: NextRequest) {
 
   // Reuse the existing traffic-aware, flood-aware routing service and avoid reimplementing credentials.
   const candidateUrl = new URL("http://citypass.internal/api/v1/routes");
-  candidateUrl.search = new URLSearchParams({ from_lat: String(from[0]), from_lng: String(from[1]), to_lat: String(to[0]), to_lng: String(to[1]) }).toString();
+  candidateUrl.search = new URLSearchParams({ from_lat: String(from[0]), from_lng: String(from[1]), to_lat: String(to[0]), to_lng: String(to[1]), vehicle }).toString();
   let base: CandidateResponse;
   try {
     const candidateResponse = await calculateCandidateRoutes(new NextRequest(candidateUrl));
