@@ -1,0 +1,644 @@
+@import "tailwindcss";
+@theme {
+  --color-ink: #14322e;
+  --color-ocean: #137d77;
+  --color-pale: #f4f8f5;
+  --color-line: #dce7e2;
+  --font-sans: "Be Vietnam Pro", "Segoe UI", sans-serif;
+}
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: #f4f8f5; color: #14322e; font-size: 14px; }
+button, input, textarea, select { font: inherit; }
+button { cursor: pointer; }
+button:disabled { opacity: .45; cursor: not-allowed; }
+button:focus-visible, input:focus-visible, a:focus-visible, textarea:focus-visible, select:focus-visible { outline: 3px solid #11a18f; outline-offset: 2px; }
+.shell { min-height: 100dvh; display: flex; flex-direction: column; }
+.topbar { height: 73px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 0 26px; background: white; border-bottom: 1px solid #dce7e2; position: relative; z-index: 1010; }
+.brand { display: inline-flex; align-items: center; gap: 12px; text-decoration: none; color: #153a34; white-space: nowrap; }
+.brand-mark { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; color: white; background: #0c6e67; }
+.brand-name { font-weight: 800; font-size: 22px; letter-spacing: -.9px; }
+.brand-sub { color: #749088; display: block; font-size: 10px; font-weight: 600; letter-spacing: .1px; }
+.topbar-center { display: flex; align-items: center; gap: 9px; }
+.top-pill { border-radius: 999px; padding: 10px 14px; display: inline-flex; gap: 9px; align-items: center; font-size: 12px; font-weight: 700; background: #f3f7f5; border: 1px solid #e0e9e4; }
+.live-dot { height: 7px; width: 7px; border-radius: 50%; background: #159568; }
+.top-actions { display: flex; gap: 9px; align-items: center; }
+.btn { min-height: 40px; padding: 0 15px; border-radius: 11px; display: inline-flex; gap: 8px; align-items: center; justify-content: center; font-weight: 700; border: 1px solid #d5e2dc; color: #285149; background: #fff; }
+.btn-primary { color: #fff; border-color: #086c62; background: #086c62; }
+.btn-primary:hover { background: #075a52; }
+.btn-ghost { background: #f4f8f5; border-color: transparent; }
+.app-main { display: flex; min-height: 0; flex: 1; height: calc(100dvh - 73px); }
+.sidebar { width: 360px; flex: 0 0 360px; background: white; border-right: 1px solid #dce7e2; display: flex; flex-direction: column; min-height: 0; z-index: 600; }
+.sidebar-scroll { overflow-y: auto; padding: 24px 20px 30px; }
+.eyebrow { text-transform: uppercase; letter-spacing: 1.4px; font-size: 10px; color: #58857a; font-weight: 800; }
+.heading { font-weight: 800; font-size: 23px; letter-spacing: -1.1px; margin: 6px 0 8px; line-height: 1.35; }
+.subtle { color: #617d74; line-height: 1.65; font-size: 12px; }
+.search-display { border: 1px solid #dce7e2; padding: 13px 13px; width: 100%; border-radius: 12px; display: flex; align-items: center; gap: 10px; text-align: left; background: #f6f9f7; margin-top: 18px; font-weight: 600; }
+.section-title { font-size: 14px; font-weight: 800; letter-spacing: -.3px; }
+.section-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 26px 0 12px; }
+.section-extra { font-size: 11px; color: #2b8272; font-weight: 700; }
+.layer-list { display: flex; flex-direction: column; gap: 9px; }
+.layer-toggle { display: flex; align-items: center; justify-content: space-between; border: 1px solid #e4ece8; padding: 11px 12px; border-radius: 12px; }
+.layer-left { display: flex; align-items: center; gap: 10px; font-weight: 650; }
+.layer-icon { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; }
+.layer-icon.rain { color: #247cc2; background: #e8f3fd; }
+.layer-icon.flood { color: #dc6a3c; background: #fff0e6; }
+.layer-icon.camera { color: #7756bc; background: #f0eafd; }
+.switch { width: 38px; height: 22px; border: 0; padding: 3px; border-radius: 20px; background: #d8e3de; transition: background .15s; }
+.switch[aria-checked="true"] { background: #0a887c; }
+.switch::before { content: ""; display: block; height: 16px; width: 16px; background: white; border-radius: 50%; transition: transform .15s; }
+.switch[aria-checked="true"]::before { transform: translateX(16px); }
+.warning-box { background: #fff8e9; color: #76551a; border: 1px solid #f6e3b3; border-radius: 12px; padding: 12px; display: flex; align-items: flex-start; gap: 10px; line-height: 1.6; font-size: 11px; margin-top: 18px; }
+.incident-item { width: 100%; border: 1px solid #e1ebe7; background: #fff; text-align: left; border-radius: 13px; padding: 13px; display: flex; gap: 11px; margin-bottom: 9px; }
+.incident-item:hover { border-color: #7ebbae; background: #f8fcfa; }
+.severity-pin { flex: 0 0 31px; width: 31px; height: 31px; display: grid; place-items: center; border-radius: 9px; font-weight: 800; font-size: 12px; }
+.severity-1 { background: #fff5c9; color: #8b6500; }
+.severity-2 { background: #fff0db; color: #9d490c; }
+.severity-3 { background: #ffe4e4; color: #ba2929; }
+.incident-main { flex: 1; min-width: 0; }
+.incident-name { font-size: 12px; font-weight: 800; }
+.incident-meta { display: flex; align-items: center; gap: 7px; margin-top: 7px; flex-wrap: wrap; font-size: 10px; color: #607b72; }
+.status-pill { color: #8b6210; background: #fff5df; border-radius: 6px; padding: 3px 6px; font-size: 9px; font-weight: 800; }
+.status-pill.verified { color: #116d48; background: #dff6ea; }
+.map-space { position: relative; flex: 1; min-width: 0; background: #dfeae4; overflow: hidden; }
+.map-canvas { height: 100%; width: 100%; z-index: 1; }
+.map-overlay-top { position: absolute; left: 20px; right: 20px; top: 18px; z-index: 550; display: flex; gap: 10px; justify-content: space-between; align-items: flex-start; pointer-events: none; }
+.map-overlay-top > * { pointer-events: auto; }
+.map-info-chip { color: #20473e; background: rgba(255,255,255,.97); box-shadow: 0 5px 20px #1844331c; border-radius: 12px; padding: 12px 15px; display: flex; align-items: center; gap: 12px; font-size: 11px; }
+.map-info-chip strong { font-size: 13px; }
+.map-tools { display: flex; flex-direction: column; gap: 8px; }
+.tool-btn { display: grid; place-items: center; width: 42px; height: 42px; border: 1px solid #dae6df; border-radius: 12px; background: white; box-shadow: 0 4px 15px #274f3c19; }
+.map-bottom { position: absolute; z-index: 550; left: 20px; bottom: 22px; pointer-events: none; }
+.map-bottom > * { pointer-events: auto; }
+.legend { background: rgba(255,255,255,.96); border: 1px solid #dfebe4; border-radius: 13px; box-shadow: 0 4px 20px #244b3f14; padding: 12px 15px; }
+.legend-items { display: flex; flex-wrap: wrap; gap: 13px; margin-top: 9px; font-size: 10px; font-weight: 650; }
+.legend-dot { display: inline-block; width: 11px; height: 11px; border-radius: 4px; margin-right: 5px; vertical-align: -1px; }
+.route-card { position: absolute; right: 19px; bottom: 20px; width: min(348px, calc(100% - 40px)); z-index: 560; border-radius: 17px; background: #fff; box-shadow: 0 12px 45px #19463536; padding: 17px; max-height: 70%; overflow-y: auto; }
+.route-title { font-size: 16px; font-weight: 800; letter-spacing: -.4px; }
+.route-head { display: flex; gap: 10px; align-items: center; justify-content: space-between; }
+.point-input { background: #f4f8f5; border: 1px solid #dce8e2; width: 100%; border-radius: 10px; padding: 11px 10px; display: flex; align-items: center; gap: 9px; font-size: 11px; text-align: left; min-height: 39px; }
+.point-input.selected { border-color: #3c9e8c; }
+.route-list { display: grid; gap: 8px; margin-top: 11px; }
+.route-option { display: flex; align-items: center; justify-content: space-between; gap: 8px; border: 1px solid #e2ebe7; border-radius: 11px; padding: 11px; text-align: left; width: 100%; background: white; }
+.route-option.current { border-color: #078778; background: #f0fbf7; }
+.modal-backdrop { position: fixed; inset: 0; z-index: 3000; background: #0c241c85; display: grid; place-items: center; padding: 15px; }
+.modal { width: min(440px, 100%); max-height: 95dvh; overflow-y: auto; background: white; border-radius: 18px; padding: 24px; box-shadow: 0 22px 80px #051a1633; }
+.field { display: grid; gap: 7px; margin-top: 13px; font-size: 12px; font-weight: 700; }
+.field input, .field select, .field textarea { border: 1px solid #cbdcd3; border-radius: 10px; padding: 11px; width: 100%; background: #fff; }
+.modal-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.notice-error { margin-top: 11px; color: #b23632; font-size: 12px; line-height: 1.5; }
+.notice-success { margin-top: 11px; color: #087158; font-size: 12px; line-height: 1.5; }
+.empty { padding: 18px; text-align: center; border: 1px dashed #d5e3dc; border-radius: 12px; color: #617d74; font-size: 12px; }
+.leaflet-container { font-family: inherit !important; }
+.leaflet-control-attribution { font-size: 9px !important; }
+.leaflet-popup-content-wrapper { border-radius: 14px !important; }
+.flood-marker { color: white; border: 3px solid white; border-radius: 13px; font-size: 14px; font-weight: 800; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; box-shadow: 0 3px 15px #234d465e; }
+.flood-marker.sev1 { background: #be9210; } .flood-marker.sev2 { background: #d36b24; } .flood-marker.sev3 { background: #cc3538; }
+.flood-marker.pending { border-style: dashed; opacity: .72; }
+.loading-root { min-height: 100dvh; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 16px; }
+@media (max-width: 1020px) { .topbar-center { display: none; } .sidebar { width: 310px; flex-basis: 310px; } .sidebar-scroll { padding: 19px 15px; } }
+@media (max-width: 760px) {
+  .topbar { height: 65px; padding: 0 13px; } .brand-name { font-size: 18px; } .brand-sub { display: none; }
+  .top-actions .btn span { display: none; } .top-actions .btn { min-width: 41px; padding: 0 10px; }
+  .app-main { height: auto; min-height: calc(100dvh - 65px); flex-direction: column; position: relative; }
+  .sidebar { order: 2; width: 100%; flex: 0 0 auto; height: auto; border-top: 1px solid #dce7e2; border-right: 0; }
+  body { font-size: 16px; } .sidebar-scroll { max-height: none; padding: 16px; } .sidebar .subtle { font-size: 14px; } .incident-name { font-size: 13px; } .incident-meta { font-size: 12px; } .sidebar .heading { font-size: 18px; } .layer-list { display: grid; grid-template-columns: repeat(3,1fr); gap: 7px; }
+  .layer-toggle { padding: 7px; gap: 5px; flex-direction: column; } .layer-left { flex-direction: column; gap: 4px; font-size: 10px; }
+  .map-space { order: 1; flex: 0 0 auto; height: min(72dvh, 670px); min-height: 430px; }
+  .map-overlay-top { top: 10px; left: 10px; right: 10px; } .map-info-chip { padding: 9px; font-size: 10px; } .map-info-chip strong { font-size: 11px; }
+  .map-tools { gap: 5px; } .tool-btn { height: 37px; width: 37px; } .map-bottom { left: 10px; bottom: 10px; } .legend { padding: 8px 10px; } .legend-items { gap: 6px; font-size: 9px; }
+  .route-card { right: 10px; bottom: 10px; max-height: 80%; width: min(330px, calc(100% - 20px)); }
+  .map-bottom:has(+ .route-card) { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { *,*::before,*::after { scroll-behavior: auto !important; transition-duration: 0s !important; } }
+
+/* Radar timeline and location/route controls, mobile-first touch targets. */
+.radar-panel { background: #f0f7f9; border: 1px solid #cfe3e9; padding: 13px 14px; border-radius: 14px; margin-top: 14px; }
+.radar-header, .radar-title, .radar-play-row, .radar-opacity { display: flex; align-items: center; gap: 9px; }
+.radar-header { justify-content: space-between; }
+.radar-title { font-weight: 800; font-size: 13px; color: #164b67; }
+.radar-subtitle { font-size: 11px; margin: 6px 0 13px; color: #466b7d; }
+.icon-inline { display: grid; place-items: center; width: 42px; height: 42px; border: 1px solid #c9dde3; border-radius: 10px; background: #fff; color: #235d76; }
+.radar-play-row { align-items: end; gap: 12px; }
+.radar-play { flex-shrink: 0; min-width: 90px; padding: 0 10px; }
+.radar-slider-label { flex: 1; min-width: 0; font-size: 10px; font-weight: 700; color: #426b7c; }
+.radar-slider-label input, .radar-opacity input { display: block; width: 100%; height: 26px; cursor: pointer; accent-color: #0b8c98; }
+.radar-time-label { display: flex; justify-content: space-between; padding-left: 103px; color: #536f7b; font-size: 10px; margin-top: -3px; }
+.radar-opacity { font-size: 11px; flex-wrap: wrap; margin-top: 11px; color: #3e6777; font-weight: 700; }
+.radar-opacity input { flex: 1 0 100%; margin-top: -5px; }
+.radar-disclaimer { font-size: 10px; color: #4c7180; line-height: 1.5; margin: 10px 0 0; }
+.radar-no-data { color: #9d482c; line-height: 1.6; font-size: 12px; }
+.gps-indicator { position: absolute; top: 95px; right: 19px; z-index: 560; border: 1px solid #b4d9f2; background: #f2f9ff; color: #125187; border-radius: 10px; padding: 8px 10px; font-size: 11px; font-weight: 700; box-shadow: 0 4px 14px #19463525; max-width: calc(100% - 38px); pointer-events: none; }
+.gps-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #1674c4; margin-right: 5px; }
+.map-error { position: absolute; top: 140px; right: 19px; left: 19px; z-index: 720; padding: 10px 12px; display: flex; align-items: center; gap: 12px; justify-content: space-between; max-width: 440px; margin-left: auto; background: white; border-radius: 11px; border: 1px solid #e2a89f; box-shadow: 0 7px 24px #0002; color: #a22e28; font-size: 12px; line-height: 1.5; }
+.map-error button { display: grid; place-items: center; min-width: 38px; min-height: 38px; }
+.leaflet-control-zoom { border: 1px solid #cbded5 !important; box-shadow: 0 4px 15px #274f3c23 !important; }
+.leaflet-control-zoom a { width: 39px !important; height: 39px !important; line-height: 39px !important; }
+@media (max-width: 760px) {
+  .radar-panel { margin-top: 12px; }
+  .gps-indicator { top: 82px; right: 10px; font-size: 10px; }
+  .map-error { top: 124px; right: 10px; left: 10px; }
+  .leaflet-bottom.leaflet-right { bottom: 96px; }
+  .map-space:has(.route-card) .leaflet-bottom.leaflet-right { bottom: 0; }
+}
+
+.map-attribution { position: absolute; z-index: 870; bottom: 0; left: 0; background: rgba(255,255,255,.96); padding: 3px 8px; font-size: 10px; color: #305a54; border-radius: 0 8px 0 0; }
+.map-attribution a { text-decoration: underline; }
+
+.map-flood-unavailable { display: block; color: #a14f2b; font-size: 10px; font-weight: 700; margin-top: 4px; }
+
+/* CityPass camera observations */
+.camera-sidebar { margin-top: 14px; padding-top: 4px; }
+.camera-nearby-list { display: grid; gap: 7px; }
+.camera-nearby-item { width: 100%; min-height: 44px; display: flex; align-items: center; gap: 9px; padding: 10px; background: #fff; border: 1px solid #d5e6e0; border-radius: 10px; color: #235449; text-align: left; }
+.camera-nearby-item:hover { background: #ecf9f3; border-color: #77b9ac; }
+.camera-nearby-item span:nth-child(2) { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-weight: 700; }
+.camera-kind { font-size: 10px; background: #f0f2fa; color: #424c78; border-radius: 6px; padding: 4px 7px; }
+.camera-catalog-note { color: #546f67; font-size: 11px; line-height: 1.55; margin-top: 9px; }
+.camera-image-wrap { width: 100%; aspect-ratio: 16/9; border-radius: 12px; overflow: hidden; background: #0d2522; display: grid; place-items: center; }
+.camera-image-wrap img { width: 100%; height: 100%; object-fit: contain; }
+.camera-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.camera-source { display: inline-block; margin-top: 12px; color: #086d65; text-decoration: underline; font-size: 12px; }
+
+/* CityPass v0.5: TomTom Traffic Flow, sampled road-level observations. */
+.layer-icon.traffic { color: #b54e2d; background: #fff0e7; }
+.traffic-areas-panel { background: #fff9f3; border: 1px solid #f2d9c0; border-radius: 14px; padding: 13px; margin-top: 12px; }
+.traffic-areas-panel .section-title { color: #70462b; }
+.traffic-hint { font-size: 11px; line-height: 1.6; color: #85694c; margin: 8px 0; }
+.traffic-area-list { display: grid; gap: 6px; max-height: 258px; overflow-y: auto; overscroll-behavior: contain; }
+.traffic-area-item { display: flex; align-items: center; gap: 8px; text-align: left; width: 100%; border: 1px solid #eedccc; border-radius: 9px; background: white; padding: 10px 8px; min-height: 52px; }
+.traffic-area-item.active, .traffic-area-item:hover { border-color: #cf805d; background: #fff3e9; }
+.traffic-area-item span:last-child { display: grid; gap: 5px; min-width: 0; }
+.traffic-area-item strong { color: #5c4337; font-size: 11px; }
+.traffic-area-item small { color: #846a56; font-size: 10px; }
+.traffic-spot { display: block; width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; border: 2px solid white; outline: 1px solid #ddd; }
+.traffic-spot.clear { background: #1aa76c; } .traffic-spot.slow { background: #dcb338; }
+.traffic-spot.jam { background: #e76931; } .traffic-spot.heavy, .traffic-spot.closed { background: #b72c35; }
+.traffic-map-popup { min-width: 190px; font-size: 12px; line-height: 1.5; }
+.traffic-map-popup p { margin: 6px 0; } .traffic-map-popup small { color: #59726b; }
+.traffic-route-warning { background: #fff7e6; border: 1px solid #edd2a4; padding: 9px; border-radius: 8px; color: #7b5013; font-size: 11px; margin-top: 9px; line-height: 1.55; }
+/* CityPass v0.4: sampled weather conditions, distinct from observed radar. */
+.layer-icon.weather { color: #c2831f; background: #fff5db; }
+.weather-areas-panel { background: #f6fafc; border: 1px solid #d1e6ed; border-radius: 14px; padding: 13px; margin-top: 13px; }
+.weather-areas-header { display: flex; align-items: center; justify-content: space-between; gap: 9px; }
+.weather-areas-header strong { color: #17495a; font-size: 13px; display: block; }
+.weather-areas-header span { font-size: 10px; color: #547384; display: block; margin-top: 4px; }
+.weather-areas-message, .weather-areas-error { font-size: 12px; line-height: 1.6; margin: 10px 0; }
+.weather-areas-error { color: #a8332e; }
+.weather-areas-error button { text-decoration: underline; font-weight: 800; }
+.weather-counts { display: flex; flex-wrap: wrap; gap: 6px; margin: 13px 0 10px; }
+.weather-counts span { background: #fff; border: 1px solid #e0eaec; color: #315864; border-radius: 8px; padding: 7px 8px; font-size: 11px; display: inline-flex; align-items: center; gap: 5px; }
+.weather-counts span:first-child svg { color: #256eaf; }
+.weather-counts span:last-child svg { color: #c58b13; }
+.weather-areas-list { max-height: 298px; overflow-y: auto; display: grid; gap: 6px; padding-right: 2px; overscroll-behavior: contain; }
+.weather-area-row { display: flex; align-items: center; gap: 9px; padding: 9px 8px; min-height: 53px; border: 1px solid #dbe8ec; background: #fff; border-radius: 10px; text-align: left; width: 100%; }
+.weather-area-row:hover, .weather-area-row.active { border-color: #38a89a; background: #eaf8f4; }
+.weather-area-icon { width: 33px; height: 33px; border-radius: 9px; flex-shrink: 0; display: grid; place-items: center; }
+.weather-area-icon.rain { background: #e5f3ff; color: #226daa; }
+.weather-area-icon.cloud { background: #edf2f5; color: #607b8c; }
+.weather-area-icon.clear { background: #fff4d8; color: #ab720e; }
+.weather-area-name { display: grid; gap: 5px; flex: 1; min-width: 0; }
+.weather-area-name b { font-size: 11px; color: #1d4647; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.weather-area-name small { color: #537684; font-size: 10px; }
+.weather-area-temp { color: #254c57; font-weight: 800; font-size: 14px; }
+.weather-areas-foot, .weather-areas-disclaimer { color: #557787; font-size: 10px; line-height: 1.55; margin: 10px 0 0; }
+.weather-areas-disclaimer { border-top: 1px solid #d9e8ec; padding-top: 9px; }
+.weather-pin-host { background: transparent; border: none; }
+.weather-map-pin { min-width: 98px; width: max-content; max-width: 122px; height: 33px; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 0 11px; white-space: nowrap; border-radius: 18px; border: 2px solid white; box-shadow: 0 4px 11px #10293c44; font-weight: 800; font-size: 11px; color: white; }
+.weather-map-pin.rain { background: #1c639f; }
+.weather-map-pin.cloud { background: #5c7388; }
+.weather-map-pin.clear { background: #ad7111; }
+.weather-map-pin.active { outline: 3px solid #1a8e80; outline-offset: 2px; }
+.weather-map-dot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 8px; background: #fff; opacity: .95; }
+.weather-map-popup { min-width: 190px; line-height: 1.5; color: #264745; }
+.weather-map-popup p { margin: 6px 0; font-size: 12px; }
+.weather-map-popup small { font-size: 10px; color: #5e7a74; }
+@media (max-width: 760px) { .sidebar .layer-list { grid-template-columns: repeat(2, minmax(0,1fr)); } .weather-map-pin { height: 29px; font-size: 10px; min-width: 79px; padding: 0 7px; } .map-info-chip { max-width: min(68%, 340px); } }
+
+
+/* CityPass v0.5.1 Google Maps handoff: only for the selected CityPass route. */
+.citypass-maps-handoff { margin-top: 14px; border: 1px solid #b3dcd0; background: #f1faf6; border-radius: 14px; padding: 12px; display: grid; gap: 11px; }
+.citypass-maps-heading { display: flex; align-items: center; gap: 8px; color: #075f51; font-size: 13px; }
+.citypass-maps-field { display: grid; gap: 5px; color: #234b42; font-size: 12px; font-weight: 700; }
+.citypass-maps-field select { width: 100%; min-height: 44px; border: 1px solid #a5cfc2; padding: 10px; border-radius: 9px; background: white; color: #14392f; font: inherit; }
+.citypass-maps-toggle { display: flex; align-items: flex-start; gap: 9px; font-size: 12px; color: #285749; line-height: 1.5; cursor: pointer; }
+.citypass-maps-toggle input { width: 17px; height: 17px; margin-top: 2px; accent-color: #0b7968; flex-shrink: 0; }
+.citypass-maps-button { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 48px; text-decoration: none; font-size: 13px; text-align: center; }
+.citypass-maps-disclaimer { display: flex; gap: 7px; margin: 0; color: #4b675f; font-size: 11px; line-height: 1.6; }
+.citypass-maps-disclaimer svg { flex-shrink: 0; margin-top: 1px; }
+.citypass-maps-field select:focus-visible, .citypass-maps-button:focus-visible, .citypass-maps-toggle input:focus-visible { outline: 3px solid #3f9f8d; outline-offset: 2px; }
+
+/* CityPass v0.6: responsive map-first layout, predictable touch controls. */
+.mobile-bottom-nav, .mobile-sheet-head, .mobile-panel-scrim { display: none; }
+.shell { overflow: hidden; }
+.sidebar-scroll { overscroll-behavior: contain; scrollbar-gutter: stable; }
+.sidebar { width: 354px; flex-basis: 354px; }
+.topbar { height: 68px; padding-inline: clamp(16px, 2vw, 32px); }
+.app-main { height: calc(100dvh - 68px); min-height: 0; }
+.btn, .tool-btn, .icon-inline, .search-display, .point-input, .camera-nearby-item, .route-option,
+.weather-area-row, .traffic-area-item { min-height: 44px; }
+.layer-toggle { min-height: 59px; }
+.layer-left { font-size: 13px; line-height: 1.35; }
+.switch { flex: 0 0 56px; width: 56px; height: 44px; padding: 11px 7px; }
+.switch::before { height: 22px; width: 22px; }
+.switch[aria-checked="true"]::before { transform: translateX(20px); }
+.layer-toggle:focus-within { border-color: #078778; }
+.map-info-chip { max-width: min(390px, calc(100vw - 480px)); }
+.map-info-chip span { min-width: 0; }
+.legend-details { background: #fff; border: 1px solid #dfebe4; border-radius: 12px; box-shadow: 0 4px 20px #244b3f14; }
+.legend-details summary { cursor: pointer; padding: 10px 13px; min-height: 42px; font-size: 12px; font-weight: 800; list-style-position: inside; }
+.legend-details > .legend { box-shadow: none; border: 0; border-top: 1px solid #e4eee9; border-radius: 0 0 12px 12px; max-width: 380px; }
+.route-card { overscroll-behavior: contain; scrollbar-gutter: stable; }
+.route-head > button { min-width: 44px; min-height: 44px; display: grid; place-items: center; border-radius: 11px; }
+.route-option { padding: 13px; line-height: 1.55; }
+.top-actions .btn { white-space: nowrap; }
+.camera-nearby-item { min-height: 48px; }
+.map-space { isolation: isolate; }
+@media (min-width: 761px) and (max-width: 1080px) {
+  .sidebar { width: 304px; flex-basis: 304px; }
+  .sidebar-scroll { padding: 17px 14px 24px; }
+  .topbar-center { display: none; }
+  .map-info-chip { max-width: min(325px, 50vw); }
+  .route-card { width: min(340px, calc(100% - 32px)); }
+}
+@media (max-width: 760px) {
+  html, body { height: 100%; overflow: hidden; }
+  .shell { height: 100dvh; min-height: 0; width: 100%; }
+  .topbar { height: 60px; padding: 0 14px; gap: 8px; flex-shrink: 0; }
+  .brand { gap: 9px; }
+  .brand-mark { width: 35px; height: 35px; }
+  .brand-name { font-size: 19px; }
+  .brand-sub { display: none; }
+  .topbar-center { display: none; }
+  .top-actions { margin-left: auto; }
+  .top-actions .btn:not(.btn-ghost) { display: none; }
+  .top-actions .btn-ghost { min-width: 44px; min-height: 44px; }
+  .app-main { height: calc(100dvh - 60px - 68px - env(safe-area-inset-bottom, 0px)); min-height: 0; flex: 0 0 calc(100dvh - 60px - 68px - env(safe-area-inset-bottom, 0px)); display: block; }
+  .map-space { height: 100%; min-height: 0; width: 100%; position: relative; }
+  .sidebar { display: none; position: fixed; z-index: 1950; bottom: calc(68px + env(safe-area-inset-bottom, 0px)); left: 0; right: 0; width: 100%; max-width: 100%; height: min(73dvh, 680px); border: 1px solid #dae8e0; border-radius: 22px 22px 0 0; box-shadow: 0 -12px 42px #092e2650; background: #fff; flex-direction: column; }
+  .sidebar.mobile-open { display: flex; }
+  .mobile-panel-scrim { display: block; position: fixed; z-index: 1850; inset: 60px 0 calc(68px + env(safe-area-inset-bottom, 0px)); border: 0; width: 100%; background: #06251b75; }
+  .mobile-sheet-head { display: flex; flex: 0 0 auto; position: relative; min-height: 58px; align-items: center; justify-content: space-between; padding: 18px 17px 9px; gap: 8px; border-bottom: 1px solid #e1eae6; font-size: 16px; }
+  .mobile-sheet-handle { position: absolute; top: 7px; left: calc(50% - 20px); width: 40px; height: 4px; border-radius: 9px; background: #c6d6ce; }
+  .mobile-sheet-close { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; background: #f2f7f4; }
+  .sidebar-scroll { min-height: 0; flex: 1 1 auto; padding: 12px 16px 24px; overflow-y: auto; scrollbar-gutter: auto; }
+  .sidebar-scroll > .eyebrow, .sidebar-scroll > .heading, .sidebar-scroll > .subtle, .sidebar-scroll > .search-display { display: none; }
+  .sidebar .section-row { margin: 14px 0 10px; }
+  .sidebar .subtle { font-size: 13px; }
+  .layer-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 7px; }
+  .layer-toggle { flex-direction: row; align-items: center; min-height: 53px; padding: 5px 10px; }
+  .layer-left { flex-direction: row; align-items: center; gap: 11px; font-size: 14px; }
+  .layer-icon { width: 35px; height: 35px; }
+  .mobile-bottom-nav { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); align-items: stretch; position: fixed; left: 0; right: 0; bottom: 0; height: calc(68px + env(safe-area-inset-bottom, 0px)); padding: 4px 8px calc(4px + env(safe-area-inset-bottom, 0px)); gap: 3px; background: #fffffffa; border-top: 1px solid #dbe8e1; z-index: 2050; box-shadow: 0 -6px 25px #183e3014; }
+  .mobile-bottom-nav button { display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 4px; min-width: 0; min-height: 54px; border-radius: 12px; color: #46675e; font-size: 11px; font-weight: 750; }
+  .mobile-bottom-nav button[aria-current="page"], .mobile-bottom-nav button[aria-expanded="true"] { background: #e6f5ef; color: #056b60; }
+  .mobile-bottom-nav button:last-child { color: #08756b; }
+  .map-overlay-top { top: 11px; left: 10px; right: 10px; gap: 7px; }
+  .map-info-chip { min-width: 0; padding: 9px 10px; max-width: calc(100% - 57px); width: fit-content; gap: 8px; border-radius: 13px; }
+  .map-info-chip > svg { width: 20px; flex-shrink: 0; }
+  .map-info-chip strong { font-size: 12px; }
+  .map-info-chip span { font-size: 10px; line-height: 1.4; overflow-wrap: anywhere; }
+  .map-tools { gap: 8px; }
+  .tool-btn { width: 44px; height: 44px; }
+  .gps-indicator { top: 112px; right: 10px; }
+  .map-bottom { left: 10px; bottom: 10px; }
+  .legend-details summary { min-height: 44px; }
+  .legend-details > .legend { max-width: min(320px, calc(100vw - 20px)); max-height: 175px; overflow-y: auto; }
+  .route-card { position: fixed; z-index: 1950; left: 0; right: 0; bottom: calc(68px + env(safe-area-inset-bottom, 0px)); width: 100%; max-height: min(76dvh, 700px); border-radius: 22px 22px 0 0; padding: 18px 17px 22px; box-shadow: 0 -15px 35px #05241d40; overscroll-behavior: contain; }
+  .route-card.is-picking { display: none; }
+  .route-card .route-title { font-size: 16px; }
+  .route-card .subtle { font-size: 13px !important; }
+  .route-card .point-input { min-height: 50px; font-size: 13px; }
+  .route-option strong { font-size: 14px !important; }
+  .route-option span { font-size: 12px !important; }
+  .route-card .field select { min-height: 48px; font-size: 15px; }
+  .map-space:has(.route-card) .map-bottom { display: none; }
+  .map-space:has(.route-card) .leaflet-bottom.leaflet-right { bottom: 0; }
+  .leaflet-bottom.leaflet-right { bottom: 38px; }
+  .map-error { top: 126px; }
+  .map-attribution { font-size: 9px; max-width: 60vw; }
+  .modal-backdrop { padding: 0; align-items: end; }
+  .modal { width: 100%; max-height: min(88dvh, 800px); border-radius: 22px 22px 0 0; padding: 22px 18px calc(24px + env(safe-area-inset-bottom, 0px)); }
+  .modal .field input, .modal .field select, .modal .field textarea { font-size: 16px; min-height: 48px; }
+}
+@media (max-width: 370px) {
+  .mobile-bottom-nav button { font-size: 10px; }
+  .map-info-chip { max-width: calc(100% - 53px); }
+  .map-info-chip strong { font-size: 11px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .route-card, .sidebar { animation: none !important; }
+}
+
+/* Make the entire layer row a keyboard/touch-accessible switch. */
+.layer-toggle { width: 100%; background: #fff; color: #14322e; text-align: left; cursor: pointer; }
+.layer-toggle:hover { background: #f4faf7; border-color: #bed9cd; }
+.layer-toggle:focus-visible { outline: 3px solid #11a18f; outline-offset: 2px; }
+.layer-toggle .layer-left { flex: 1 1 auto; min-width: 0; }
+.layer-toggle .switch[data-active="true"] { background: #0a887c; }
+.layer-toggle .switch[data-active="true"]::before { transform: translateX(20px); }
+
+/* CityPass v0.6.2 compact layer controls and floating legend */
+/* Keep a 44px touch target; shrink the artwork, not the hit area. */
+.layer-list { gap: 8px; }
+.layer-toggle { min-height: 48px; padding: 6px 10px; border-radius: 11px; gap: 7px; }
+.layer-toggle .layer-left { display: flex; flex-direction: row; align-items: center; gap: 8px; font-size: 12px; }
+.layer-toggle .layer-left > span:last-child { font-size: 12px; font-weight: 700; line-height: 1.35; }
+.layer-toggle .layer-icon { width: 29px; height: 29px; min-width: 29px; border-radius: 8px; }
+.layer-toggle .layer-icon svg { width: 16px; height: 16px; }
+.layer-toggle .switch { flex: 0 0 34px; width: 34px; height: 20px; padding: 2px; border-radius: 20px; }
+.layer-toggle .switch::before { width: 16px; height: 16px; }
+.layer-toggle .switch[data-active="true"]::before { transform: translateX(14px); }
+/* Legend is reachable at the TOP of the map, without scrolling. */
+.map-bottom { top: 86px; bottom: auto; left: 16px; max-width: calc(100% - 32px); z-index: 650; }
+.legend-details { width: fit-content; max-width: 100%; }
+.legend-details summary { display: flex; align-items: center; gap: 7px; min-height: 44px; padding: 9px 12px; font-size: 12px; }
+.legend-details summary::marker { font-size: 11px; }
+.legend-details[open] { width: min(320px, calc(100vw - 32px)); }
+.legend-details[open] > .legend { max-height: min(45dvh, 290px); overflow: auto; }
+@media (max-width: 760px) {
+  .layer-list { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+  .layer-toggle { flex-direction: row; align-items: center; min-height: 48px; padding: 6px 8px; }
+  .layer-toggle .layer-left { flex-direction: row; align-items: center; gap: 5px; font-size: 11px; }
+  .layer-toggle .layer-left > span:last-child { font-size: 11px; }
+  .layer-toggle .layer-icon { width: 27px; height: 27px; min-width: 27px; }
+  .map-bottom { top: 80px; bottom: auto; left: 10px; }
+  .legend-details[open] > .legend { max-height: min(37dvh, 230px); overflow: auto; }
+  .map-space:has(.route-card) .map-bottom { display: none; }
+}
+
+/* CityPass v0.6.4 COMPAT FIX: no-page-scroll, top-route, toast */
+/* Desktop: independent sidebar scrolling; map remains in the viewport. */
+@media (min-width: 761px) {
+  html, body { height: 100%; overflow: hidden; }
+  .shell { height: 100dvh; min-height: 0; overflow: hidden; }
+  .app-main { min-height: 0; flex: 1 1 auto; }
+  .sidebar-scroll { min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
+  .map-bottom { top: 132px; bottom: auto; left: 16px; }
+  .route-card { position: absolute; top: 16px; bottom: auto; right: 16px; max-height: calc(100% - 32px); overflow-y: auto; overscroll-behavior: contain; }
+}
+/* Keep legend as a compact expandable legend, below the weather summary. */
+.map-bottom { max-width: calc(100% - 32px); z-index: 650; }
+.legend-details { max-width: 100%; }
+.legend-details > summary { cursor: pointer; }
+.legend-details[open] > .legend { max-height: min(42dvh, 280px); overflow-y: auto; }
+.route-card .route-head { position: sticky; top: -1px; z-index: 3; background: #fff; padding-bottom: 9px; }
+.route-card { scrollbar-gutter: stable; overscroll-behavior: contain; }
+.citypass-toast-host {
+  position: fixed; z-index: 2500; bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: #153e35; color: #fff; border-radius: 13px; padding: 11px 12px 11px 16px;
+  display: flex; align-items: center; gap: 12px; width: max-content; max-width: min(92vw, 410px);
+  font-size: 13px; font-weight: 650; box-shadow: 0 12px 30px #173d3540;
+}
+.citypass-toast-host > span { flex: 1 1 auto; }
+.citypass-toast-host button { flex: 0 0 32px; display: grid; place-items: center; width: 32px; height: 32px; border: 1px solid #ffffff45; border-radius: 9px; }
+@media (max-width: 760px) {
+  /* Mobile: route opens BELOW the header, not off-screen or at the bottom of a long page. */
+  .route-card { position: fixed; top: 70px; bottom: auto; left: 10px; right: 10px; width: auto;
+    max-height: calc(100dvh - 70px - 68px - env(safe-area-inset-bottom, 0px) - 12px);
+    border-radius: 17px; overflow-y: auto; overscroll-behavior: contain; }
+  .route-card.is-picking { display: none; }
+  .map-bottom { top: 122px; bottom: auto; left: 10px; right: auto; max-width: calc(100% - 20px); }
+  .legend-details[open] > .legend { max-height: min(32dvh, 210px); }
+  .citypass-toast-host { bottom: calc(78px + env(safe-area-inset-bottom, 0px)); }
+  .sidebar-scroll { overscroll-behavior: contain; scrollbar-gutter: stable; }
+}
+
+/* CityPass road lookup v0.8: accessible search, desktop/mobile */
+.citypass-road-search { position: relative; z-index: 1900; flex: 0 0 auto; width: 100%; min-height: 68px; background: #f8fbf9; border-bottom: 1px solid #dce8e3; display: flex; justify-content: center; align-items: center; padding: 9px 20px; }
+.citypass-road-search-inner { width: min(730px,100%); min-height: 48px; border: 1px solid #cfdfd8; background: #fff; box-shadow: 0 2px 14px #173a2c0d; border-radius: 13px; padding: 0 10px 0 15px; display: flex; align-items: center; gap: 10px; color: #136456; }
+.citypass-road-search-inner:focus-within { border-color: #138e7e; box-shadow: 0 0 0 3px #109b8022; }
+.citypass-road-search-inner input { width: 100%; flex: 1; font: inherit; font-size: 14px; border: 0; outline: 0; color: #173f36; background: transparent; min-width: 0; }
+.citypass-road-search-inner input::placeholder { color: #708981; opacity: 1; }
+.citypass-road-search-close { width: 36px; height: 36px; display: grid; place-items: center; background: #f0f6f3; border: 0; border-radius: 10px; flex: 0 0 36px; }
+.citypass-road-arrow { font-size: 19px; }
+.citypass-road-popover { position: absolute; top: calc(100% - 2px); left: 50%; transform: translateX(-50%); width: min(730px,calc(100vw - 24px)); max-height: min(72dvh, 720px); overflow-y: auto; overscroll-behavior: contain; background: white; border: 1px solid #d7e6df; box-shadow: 0 22px 58px #163d323c; border-radius: 0 0 18px 18px; padding: 16px; z-index: 2000; }
+.citypass-road-popover-title { font-size: 14px; font-weight: 800; color: #143b33; }
+.citypass-road-hint { color: #5b7970; font-size: 12px; line-height: 1.55; margin: 8px 0; }
+.citypass-road-suggestions { display: grid; gap: 6px; margin-top: 12px; }
+.citypass-road-suggestions button { display: flex; align-items: flex-start; gap: 10px; width: 100%; min-height: 53px; padding: 12px; text-align: left; border: 1px solid #e4ede8; background: #fbfdfc; border-radius: 11px; }
+.citypass-road-suggestions button:hover, .citypass-road-suggestions button:focus-visible { border-color: #4ca592; background: #eefaF5; }
+.citypass-road-suggestions button svg { color: #167d6f; margin-top: 2px; flex-shrink: 0; }
+.citypass-road-suggestions strong, .citypass-road-suggestions small { display: block; }
+.citypass-road-suggestions strong { font-size: 13px; color: #153e34; }
+.citypass-road-suggestions small { margin-top: 4px; color: #5b756d; font-size: 11px; line-height: 1.4; }
+.citypass-road-selected { display: flex; align-items: center; gap: 10px; background: #ecf8f3; border: 1px solid #b8dfd0; border-radius: 12px; padding: 12px; color: #126f60; }
+.citypass-road-selected > div { flex: 1; min-width: 0; }
+.citypass-road-selected strong, .citypass-road-selected small { display: block; }
+.citypass-road-selected strong { font-size: 14px; }
+.citypass-road-selected small { margin-top: 5px; font-size: 11px; color: #476c60; line-height: 1.4; overflow-wrap: anywhere; }
+.citypass-road-selected button { min-width: 48px; min-height: 38px; color: #126f60; font-weight: 800; }
+.citypass-road-filters { display: flex; flex-wrap: wrap; gap: 9px; margin: 11px 0; }
+.citypass-road-filters label { display: inline-flex; align-items: center; gap: 7px; padding: 9px 11px; min-height: 44px; border: 1px solid #d9e5df; background: #fff; border-radius: 11px; cursor: pointer; font-size: 12px; font-weight: 750; color: #355e54; }
+.citypass-road-filters label.selected { color: #076a5a; border-color: #76bdac; background: #eef9f4; }
+.citypass-road-filters input { width: 15px; height: 15px; accent-color: #078c78; }
+.citypass-road-analyze { display: flex; align-items: center; justify-content: center; gap: 9px; min-height: 46px; width: 100%; border-radius: 11px; background: #087867; color: white; font-size: 13px; font-weight: 800; }
+.citypass-road-analyze:disabled { background: #a4c7bc; cursor: wait; }
+.citypass-road-results { display: grid; gap: 10px; margin-top: 15px; }
+.citypass-road-results > strong { color: #153e35; font-size: 13px; }
+.citypass-road-result { border: 1px solid #dce9e4; padding: 12px; border-radius: 12px; background: #f7faf8; }
+.citypass-road-result.warning { border-color: #f0d4a2; background: #fffaf1; }
+.citypass-road-result.unknown { border-color: #d8e1e6; background: #f7f9fa; }
+.citypass-road-result-header { display: flex; align-items: center; gap: 7px; margin-bottom: 8px; }
+.citypass-road-result-header strong { font-size: 12px; }
+.citypass-road-result-header span { margin-left: auto; color: #567168; font-weight: 700; font-size: 10px; }
+.citypass-road-result > b { display: block; color: #153f35; font-size: 13px; }
+.citypass-road-result > p { color: #41655b; font-size: 12px; line-height: 1.55; margin: 6px 0; }
+.citypass-road-result > small { font-size: 10px; color: #697f79; }
+.citypass-road-camera { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 0; font-size: 12px; border-top: 1px solid #dde9e3; }
+.citypass-road-camera a { color: #087867; text-decoration: underline; white-space: nowrap; }
+.citypass-road-error { font-size: 12px; padding: 10px; border-radius: 10px; margin-top: 10px; color: #ad3533; background: #fff2ed; }
+.citypass-road-disclaimer { font-size: 11px; color: #71847e; line-height: 1.6; margin: 9px 0 0; }
+.citypass-spin { animation: citypass-road-spin 1s linear infinite; }
+@keyframes citypass-road-spin { to { transform: rotate(360deg); } }
+.shell:has(.citypass-road-search) .app-main { height: calc(100dvh - 73px - 68px); }
+@media(max-width:760px) {
+ .citypass-road-search { min-height: 62px; padding: 6px 12px; }
+ .citypass-road-search-inner { min-height: 47px; }
+ .citypass-road-search-inner input { font-size: 13px; }
+ .citypass-road-popover { padding: 12px; max-height: min(76dvh, 700px); }
+ .citypass-road-filters { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
+ .citypass-road-filters label { justify-content: flex-start; }
+ .shell:has(.citypass-road-search) .app-main { height: calc(100dvh - 65px - 62px); min-height: 0; }
+}
+@media(prefers-reduced-motion:reduce) { .citypass-spin { animation: none; } }
+
+/* CityPass journey v0.9: origin road to destination, mobile-first */
+.citypass-journey { margin-top: 16px; padding: 14px; border: 1px solid #c8e1d7; border-radius: 14px; background: #f6fbf8; display: grid; gap: 10px; }
+.citypass-journey-title { display: flex; gap: 10px; align-items: center; color: #116f5b; }
+.citypass-journey-title > div { display: grid; gap: 4px; }
+.citypass-journey-title strong { color: #123d34; font-size: 15px; }
+.citypass-journey-title small { color: #5a7a6d; font-size: 11px; }
+.citypass-journey-origin { display: flex; align-items: center; gap: 7px; padding: 10px; background: #e5f6ed; border-radius: 10px; color: #245f50; font-size: 12px; }
+.citypass-journey-origin span { min-width: 0; overflow-wrap: anywhere; }
+.citypass-journey-origin small { color: #658277; }
+.citypass-journey-label { font-size: 12px; font-weight: 800; color: #153e35; }
+.citypass-journey-input { display: flex; gap: 8px; align-items: center; padding: 0 11px; min-height: 48px; background: #fff; border: 1px solid #b5d6c8; border-radius: 10px; color: #158272; }
+.citypass-journey-input:focus-within { outline: 2px solid #97d5c5; }
+.citypass-journey-input input { min-width: 0; flex: 1; border: 0; outline: 0; background: transparent; color: #153f34; font-size: 13px; }
+.citypass-journey-input button { color: #116f60; font-size: 12px; font-weight: 800; padding: 8px; }
+.citypass-journey-suggestions { display: grid; gap: 5px; max-height: 190px; overflow-y: auto; overscroll-behavior: contain; }
+.citypass-journey-suggestions button { display: flex; align-items: flex-start; text-align: left; gap: 8px; border: 1px solid #dfebe4; padding: 10px; border-radius: 10px; background: white; }
+.citypass-journey-suggestions button:focus-visible, .citypass-journey-suggestions button:hover { border-color: #68af9e; }
+.citypass-journey-suggestions button span { display: grid; gap: 4px; min-width: 0; }
+.citypass-journey-suggestions strong { font-size: 12px; color: #244b40; }
+.citypass-journey-suggestions small { font-size: 10px; color: #5f7972; overflow-wrap: anywhere; }
+.citypass-journey-destination { font-size: 12px; color: #355a4f; padding: 5px 0; }
+.citypass-journey-plan { min-height: 48px; border-radius: 11px; background: #087a66; display: flex; align-items: center; gap: 8px; justify-content: center; padding: 10px; color: white; font-weight: 800; font-size: 12px; }
+.citypass-journey-plan:disabled { opacity: .55; cursor: not-allowed; }
+.citypass-journey-results { display: grid; gap: 10px; margin-top: 4px; }
+.citypass-journey-results-title { font-size: 14px; color: #184236; }
+.citypass-journey-note { font-size: 11px; color: #54786b; line-height: 1.5; margin: 0; }
+.citypass-journey-options { display: grid; gap: 8px; }
+.citypass-journey-option { width: 100%; display: grid; text-align: left; gap: 9px; background: white; border: 1px solid #dce9e1; border-radius: 12px; padding: 12px; }
+.citypass-journey-option.selected { background: #edf9f3; border-color: #07836f; box-shadow: 0 0 0 1px #07836f; }
+.citypass-journey-option-head, .citypass-journey-metrics { display: flex; align-items: center; gap: 9px; }
+.citypass-journey-option-head { justify-content: space-between; font-size: 13px; color: #146755; }
+.citypass-journey-metrics { flex-wrap: wrap; color: #1b4036; }
+.citypass-journey-metrics b { font-size: 14px; }
+.citypass-journey-metrics small { font-size: 11px; color: #ae5924; }
+.citypass-journey-summary { color: #58756b; display: flex; gap: 7px; font-size: 11px; line-height: 1.3; }
+.citypass-journey-summary svg { flex: 0 0 14px; }
+.citypass-journey-handoff { display: grid; gap: 10px; }
+.citypass-journey-preview, .citypass-journey-google { display: flex; align-items: center; justify-content: center; gap: 9px; min-height: 46px; border-radius: 10px; padding: 10px; font-size: 12px; font-weight: 800; text-align: center; }
+.citypass-journey-preview { background: #e1f2ec; color: #076857; border: 1px solid #aad7c5; }
+.citypass-journey-google { background: #087565; color: #fff; text-decoration: none; }
+.citypass-journey-waypoints { display: flex; align-items: flex-start; gap: 9px; font-size: 11px; color: #426a5b; line-height: 1.4; }
+.citypass-journey-waypoints input { margin-top: 2px; accent-color: #087565; width: 16px; height: 16px; }
+.citypass-journey-handoff p, .citypass-journey-caution { margin: 0; font-size: 11px; line-height: 1.5; color: #6c5940; }
+.citypass-journey-caution { border-radius: 10px; padding: 10px; background: #fff7e7; border: 1px solid #f0d6aa; }
+@media (max-width: 760px) {
+ .citypass-journey { padding: 11px; }
+ .citypass-journey-suggestions { max-height: 160px; }
+ .citypass-journey-plan { min-height: 50px; }
+ .citypass-journey-option { padding: 11px; }
+}
+
+/* CityPass v1.0 - nonblocking multi-source weather cross-check and official links */
+.citypass-official-shell { flex: none; border-bottom: 1px solid #d9e7e3; background: #f6fbfa; padding: 0 16px; }
+.citypass-official-expander { display: flex; width: min(100%, 1200px); margin: 0 auto; min-height: 45px; gap: 9px; align-items: center; text-align: left; color: #176559; font-size: 13px; }
+.citypass-official-expander > strong { flex: 1; min-width: 0; }
+.citypass-official-expander > span { font-size: 11px; font-weight: 700; white-space: nowrap; }
+.citypass-official-expander:focus-visible,.citypass-official-check:focus-visible,.citypass-official-links a:focus-visible { outline: 3px solid #0a9181; outline-offset: 2px; }
+.citypass-official-content { width: min(100%, 1200px); margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 16px; padding: 4px 0 15px; }
+.citypass-official-left,.citypass-official-right { min-width: 0; border-radius: 12px; background: #fff; border: 1px solid #daebe6; padding: 13px; }
+.citypass-official-left p,.citypass-official-right > small { margin: 0 0 10px; font-size: 12px; line-height: 1.6; color: #46695f; }
+.citypass-official-right > strong { display: flex; align-items: center; gap: 7px; color: #174c41; font-size: 13px; margin-bottom: 10px; }
+.citypass-official-check { min-height: 44px; background: #08776c; color: #fff; display: inline-flex; justify-content: center; align-items: center; gap: 7px; border: none; border-radius: 10px; padding: 9px 15px; font-size: 12px; font-weight: 750; }
+.citypass-official-check:disabled { cursor: wait; opacity: .6; }
+.citypass-official-warning { color: #aa3a2b !important; margin-top: 10px !important; }
+.citypass-official-verdict { margin-top: 12px; padding: 11px; border-radius: 9px; background: #f2f8f6; border: 1px solid #d6e7df; color: #1b4c43; }
+.citypass-official-verdict > strong { font-size: 13px; }
+.citypass-official-verdict p { margin: 6px 0 !important; }
+.citypass-official-verdict > small { color: #795621; font-size: 11px; }
+.citypass-official-evidence { display: grid; gap: 6px; margin: 10px 0; }
+.citypass-official-evidence > div { display: grid; grid-template-columns: minmax(0,1fr); gap: 3px; padding: 8px 9px; border: 1px solid #ddece6; background: white; border-radius: 8px; }
+.citypass-official-evidence b { font-size: 11px; }
+.citypass-official-evidence span,.citypass-official-evidence small { font-size: 11px; color: #53786e; }
+.citypass-official-links { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 7px; margin-bottom: 8px; }
+.citypass-official-links a { border: 1px solid #e0ebe6; border-radius: 9px; min-height: 55px; padding: 8px 9px; color: #176a5b; background: #fbfefc; text-decoration: none; }
+.citypass-official-links a b { display: flex; justify-content: space-between; gap: 6px; align-items: center; font-size: 11px; }
+.citypass-official-links a small { display: block; margin-top: 4px; color: #5a7a70; line-height: 1.4; font-size: 10px; }
+@media(max-width:760px){.citypass-official-shell{padding:0 12px}.citypass-official-expander{font-size:12px}.citypass-official-content{grid-template-columns:1fr;gap:9px;max-height:min(64dvh,620px);overflow-y:auto;overscroll-behavior:contain}.citypass-official-links{grid-template-columns:1fr 1fr}.citypass-official-check{width:100%}}
+@media(max-width:385px){.citypass-official-links{grid-template-columns:1fr}}
+
+/* CityPass v1.0.1 UI polish: route contrast, clearer road search, plain-language route cards */
+.citypass-road-search { background: linear-gradient(180deg, #fcfffe 0%, #f6fbf9 100%); }
+.citypass-road-search-inner { min-height: 56px; border: 1.5px solid #3aa08d; border-radius: 18px; padding: 0 10px 0 16px; box-shadow: 0 6px 18px #173a2c12; }
+.citypass-road-search-inner input { font-size: 15px; }
+.citypass-road-search-toggle { background: #0f7e6b; color: #fff; box-shadow: 0 6px 14px #0f7e6b26; }
+.citypass-road-search-toggle:hover, .citypass-road-search-toggle:focus-visible { background: #0c6d5c; }
+.citypass-road-search-toggle svg { display: block; margin: 0 auto; }
+.citypass-road-popover-title { font-size: 15px; }
+.citypass-road-hint { font-size: 12px; color: #54756c; }
+.citypass-road-result > p { font-size: 12px; line-height: 1.62; }
+.citypass-road-disclaimer { font-size: 11px; color: #607872; }
+.citypass-journey-badges { display: flex; flex-wrap: wrap; gap: 6px; }
+.citypass-journey-badge { display: inline-flex; align-items: center; min-height: 26px; padding: 4px 10px; border-radius: 999px; font-size: 10px; font-weight: 800; letter-spacing: .01em; }
+.citypass-journey-badge.best { background: #ece5ff; color: #5b21b6; }
+.citypass-journey-badge.alt { background: #eef3f6; color: #486270; }
+.citypass-journey-badge.ok { background: #e8f7ef; color: #196c4e; }
+.citypass-journey-badge.warn { background: #fff4df; color: #9a5a12; }
+.citypass-journey-plain { display: block; font-size: 12px; line-height: 1.55; color: #27483d; background: #f7fbf9; border: 1px dashed #cfe1d9; border-radius: 10px; padding: 9px 10px; }
+.citypass-journey-summary { align-items: flex-start; }
+.citypass-journey-summary b { color: #183f35; margin-right: 4px; }
+@media(max-width:760px) {
+  .citypass-road-search-inner { min-height: 54px; border-radius: 16px; }
+  .citypass-road-search-toggle { width: 40px; height: 40px; flex-basis: 40px; border-radius: 12px; }
+  .citypass-journey-badges { gap: 5px; }
+  .citypass-journey-badge { font-size: 9px; padding: 4px 8px; }
+}
+
+/* CityPass v1.0.3: visible planned route and persistent trip hint. */
+.citypass-journey-route-key { display: flex; align-items: center; gap: 9px; font-size: 11px; line-height: 1.5; color: #4c5363; background: #f8f6fc; border: 1px solid #e8d7f5; padding: 8px 10px; border-radius: 10px; }
+.citypass-journey-route-key::before { content: ""; flex: 0 0 30px; display: block; height: 7px; border: 2px solid white; outline: 1px solid #d8cae4; border-radius: 9px; background: #b21dc9; }
+.citypass-journey-option.selected { outline: 2px solid #b21dc9; outline-offset: -1px; border-color: #b21dc9; background: #fbf6fe; }
+.citypass-journey-option:focus-visible, .citypass-road-search-toggle:focus-visible { outline: 3px solid #b21dc9; outline-offset: 2px; }
+
+/* CityPass v1.1.0 COMPAT unified search layout */
+.citypass-road-mode { position: sticky; top: 0; z-index: 4; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 7px; padding: 6px 0 9px; background: #fff; border-bottom: 1px solid #e7efeb; }
+.citypass-road-mode button { min-width: 0; min-height: 46px; padding: 9px 8px; border: 1px solid #d1e5dc; border-radius: 12px; background: #fff; color: #37594f; font-size: 12px; font-weight: 800; }
+.citypass-road-mode button.active { color: #0a6959; background: #e8f8f2; border-color: #55a995; box-shadow: inset 0 0 0 1px #55a995; }
+.citypass-road-mode button:focus-visible { outline: 3px solid #80cab8; outline-offset: 2px; }
+.citypass-road-pane { min-width: 0; }
+.citypass-road-pane[hidden] { display: none !important; }
+.citypass-road-popover { overscroll-behavior: contain; scrollbar-gutter: stable; }
+.citypass-road-popover .citypass-journey { margin-top: 10px; }
+@media (max-width: 760px) {
+  .citypass-road-search { padding-inline: 10px; }
+  .citypass-road-search-inner { min-height: 51px; border-radius: 15px; }
+  .citypass-road-popover {
+    left: 8px;
+    right: 8px;
+    top: calc(100% - 2px);
+    width: auto;
+    transform: none;
+    max-height: min(72dvh, calc(100dvh - 196px));
+    padding: 10px 12px 14px;
+    border-radius: 0 0 16px 16px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .citypass-road-mode button { min-height: 46px; }
+  .citypass-road-selected { align-items: flex-start; padding: 11px; }
+  .citypass-road-selected button { flex: 0 0 auto; }
+  .citypass-road-pane .citypass-journey { padding: 12px; }
+  .citypass-road-pane .citypass-journey-results { padding-bottom: 10px; }
+  .citypass-road-pane .citypass-journey-plan,
+  .citypass-road-pane .citypass-journey-preview,
+  .citypass-road-pane .citypass-journey-google,
+  .citypass-road-pane .citypass-road-analyze { min-height: 48px; }
+}
+@media (prefers-reduced-motion: reduce) { .citypass-road-popover { scroll-behavior: auto; } }
+
+
+/* CityPass v1.1.1 estimated rain map overlay */
+.citypass-rain-map-note {
+  position: absolute;
+  z-index: 660;
+  left: 12px;
+  bottom: 38px;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  width: max-content;
+  max-width: min(355px, calc(100% - 80px));
+  padding: 10px 12px;
+  color: #143a4d;
+  background: rgba(255,255,255,.96);
+  border: 1px solid rgba(50,116,173,.28);
+  border-radius: 12px;
+  box-shadow: 0 7px 26px rgba(18,39,74,.18);
+  line-height: 1.4;
+  pointer-events: none;
+}
+.citypass-rain-map-note > span:last-child { min-width: 0; }
+.citypass-rain-map-note strong { display: block; font-size: 12px; line-height: 1.3; }
+.citypass-rain-map-note small { display: block; margin-top: 4px; color: #4d687b; font-size: 10px; line-height: 1.45; }
+.citypass-rain-map-swatch { flex: 0 0 15px; width: 15px; height: 15px; margin-top: 1px; border-radius: 50%; background: #2379cb; border: 2px dashed #164a8f; box-shadow: 0 0 0 3px rgba(42,120,206,.12); }
+@media (max-width: 760px) {
+  .citypass-rain-map-note { left: 9px; bottom: 36px; padding: 8px 10px; gap: 8px; max-width: calc(100% - 72px); border-radius: 11px; }
+  .citypass-rain-map-note strong { font-size: 11px; }
+  .citypass-rain-map-note small { font-size: 10px; }
+}

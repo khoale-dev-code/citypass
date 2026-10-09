@@ -1,0 +1,3042 @@
+This file is a merged representation of a subset of the codebase, containing files not matching ignore patterns, combined into a single document by Repomix.
+
+================================================================
+File Summary
+================================================================
+
+Purpose:
+--------
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+
+File Format:
+------------
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  a. A separator line (================)
+  b. The file path (File: path/to/file)
+  c. Another separator line
+  d. The full contents of the file
+  e. A blank line
+
+Usage Guidelines:
+-----------------
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+
+Notes:
+------
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching these patterns are excluded: node_modules/**, dist/**, .git/**, *.log, *.mp4, *.webp, *.png, *.jpg, *.jpeg, *.gif
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+- Git diffs from the worktree and staged changes are included
+- Git logs (20 commits) are included to show development patterns
+
+
+================================================================
+Directory Structure
+================================================================
+.env.example
+.gitignore
+docs/ARCHITECTURE.md
+docs/CAMERA-SOURCES.md
+docs/GOOGLE-MAPS-HANDOFF.md
+docs/INTEGRATIONS.md
+docs/SECURITY.md
+docs/TRAFFIC-SETUP.md
+docs/WEATHER-COVERAGE.md
+eslint.config.mjs
+next-env.d.ts
+next.config.ts
+package.json
+postcss.config.mjs
+README.md
+scripts/Inspect-LoiRao.ps1
+src/app/api/internal/ingest/afsc/route.ts
+src/app/api/v1/cameras/route.ts
+src/app/api/v1/incidents/nearby/route.ts
+src/app/api/v1/reports/[id]/verify/route.ts
+src/app/api/v1/reports/route.ts
+src/app/api/v1/routes/route.ts
+src/app/api/v1/traffic/areas/route.ts
+src/app/api/v1/traffic/tile/route.ts
+src/app/api/v1/weather/areas/route.ts
+src/app/api/v1/weather/current/route.ts
+src/app/api/v1/weather/radar/route.ts
+src/app/error.tsx
+src/app/globals.css
+src/app/layout.tsx
+src/app/loading.tsx
+src/app/not-found.tsx
+src/app/page.tsx
+src/app/robots.ts
+src/app/sitemap.ts
+src/components/camera-player.tsx
+src/components/camera-snapshot.tsx
+src/components/dashboard.tsx
+src/components/map-view.tsx
+src/components/radar-timeline.tsx
+src/components/traffic-panel.tsx
+src/components/weather-areas-panel.tsx
+src/lib/afsc/adapter.ts
+src/lib/camera-catalog.ts
+src/lib/config.ts
+src/lib/demo.ts
+src/lib/google-maps.ts
+src/lib/http.ts
+src/lib/radar.ts
+src/lib/supabase/client.ts
+src/lib/supabase/server.ts
+src/lib/traffic.ts
+src/lib/types.ts
+src/lib/weather-areas.ts
+Start-LoiRao.ps1
+supabase/migrations/202610080001_initial.sql
+tests/camera-catalog.test.mjs
+tests/config.test.mjs
+tests/google-maps.test.mjs
+tests/radar.test.mjs
+tests/traffic.test.mjs
+tests/weather-areas.test.mjs
+tsconfig.json
+
+================================================================
+Files
+================================================================
+
+================
+File: .env.example
+================
+# Sao chép thành .env.local để bật ghi dữ liệu thật.
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+# Chỉ server đọc khoá AFSC. Không có URL = KHÔNG có dữ liệu cảm biến trực tiếp.
+AFSC_API_URL=
+AFSC_API_TOKEN=
+CRON_SECRET=
+# Máy chủ định tuyến riêng / dịch vụ OSRM được phép sử dụng trong sản phẩm chính thức.
+# Bỏ trống: máy chủ thử nghiệm công cộng (chỉ dùng phát triển cá nhân).
+ROUTING_BASE_URL=
+# TomTom Traffic Flow + routing. SERVER-ONLY; NEVER use NEXT_PUBLIC_.
+# Obtain at https://developer.tomtom.com/ . Without it only OSRM routes work.
+TOMTOM_API_KEY=
+# Danh mục camera công khai rin2401 (ảnh tĩnh). Đặt false để tắt.
+CITYPASS_PUBLIC_CAMERAS=true
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+
+================
+File: .gitignore
+================
+node_modules/
+.next/
+.env*.local
+.env
+!.env.example
+*.tsbuildinfo
+*.log
+
+================
+File: docs/ARCHITECTURE.md
+================
+# Kiến trúc CityPass — MVP
+
+## Thiết kế
+- Sản phẩm: bản đồ cảnh báo mưa/ngập quanh người tham gia giao thông tại TP.HCM.
+- Người dùng: người đi xe máy/ô tô; hành động chính: xem tín hiệu, so tuyến, báo điểm ngập.
+- Ngôn ngữ: tiếng Việt. Desktop: sidebar 360px + bản đồ + route overlay. Mobile: bản đồ trước, danh sách/layer phía dưới.
+- Bảng màu: xanh trầm #14322E, xanh định hướng #086C62, trắng #FFFFFF, nền #F4F8F5, viền #DCE7E2; mức ngập vàng #BE9210, cam #D36B24, đỏ #CC3538.
+- Typography: Be Vietnam Pro, nhấn mạnh khả năng đọc tiếng Việt và thao tác 1 tay.
+- Điểm nhấn: tuyến đường và cảnh báo được đặt trực tiếp trên bản đồ (không dùng dashboard biểu đồ trang trí).
+
+## Wireframe
+
+```text
+┌───────────── Brand ────────── City/Time ───── Route / Report ─────┐
+├───────────────┬───────────────────────────────────────────────────┤
+│ Layers        │ Weather / Radar time             GPS buttons      │
+│ Flood risks   │                                                   │
+│ Incident list │                 MAP                               │
+│               │                + flood pins                       │
+│               │                       Route panel (bottom-right)  │
+└───────────────┴───────────────────────────────────────────────────┘
+Mobile: Header / Map / Layers + Incident List
+```
+
+## Luồng dữ liệu
+1. Radar RainViewer cung cấp ảnh mưa quá khứ; /api/v1/weather/radar cache 5 phút. Tối đa zoom native 7 theo chính sách 2026.
+2. Open-Meteo current precipitation là số từ mô hình dự báo/tái phân tích, **không phải trạm đo ngay tại địa điểm**.
+3. Dữ liệu ngập từ AFSC adapter nếu có URL/khóa/hợp đồng dữ liệu; server POST /api/internal/ingest/afsc qua bearer CRON_SECRET.
+4. Báo cáo cộng đồng POST /api/v1/reports → RPC Postgres giao dịch → incident PENDING → realtime incident_events theo ô lưới và polling 30 giây.
+5. 3 phiếu confirm từ 3 tài khoản khác nhau, GPS khai báo nằm trong 200m, trong 15 phút → VERIFIED. 2 false_alarm → HIDDEN. TTL 90 phút. Đối đầu: ưu tiên HIDDEN.
+6. Tuyến xe: máy chủ OSRM cung cấp route alternatives, backend đếm điểm ngập gần polyline trong 130m, xếp tăng dần tín hiệu ngập và ưu tiên thời gian khi hòa. Chưa phải thuật toán tránh tất cả đường ngập; thiếu sự cố chưa chứng minh đường khô. Profile driving là ô tô, không dùng làm chỉ đường rẽ xe máy chính thức.
+7. GET /api/v1/cameras đọc danh mục snapshot từ tab camera của nguồn công khai (cache 60s), ưu tiên an toàn + chống tái sử dụng sai mục đích; camera HLS từ DB vẫn hoạt động. Không coi ảnh là video hay bằng chứng đường không ngập.
+8. Database Supabase với PostGIS; không có keys → giao diện demo, dữ liệu ví dụ cố ý gắn nhãn dữ liệu hư cấu. Google Maps không được dùng ở bản khởi tạo để chạy được mà không cần API key/billing; nền bản đồ OpenStreetMap/Leaflet. Có thể thay adapter map ở bản sau khi cấp khóa Google Maps.
+
+## Các API
+- GET /api/v1/incidents/nearby?lat=10.78&lng=106.7&radius_km=5
+- GET /api/v1/cameras?lat=10.78&lng=106.7&radius_km=5
+- POST /api/v1/reports (requires bearer Supabase access_token, body {type,lat,lng,severity,photo_url,note})
+- POST /api/v1/reports/:id/verify (bearer auth, body {vote_type,lat,lng,accuracy_m})
+- GET /api/v1/weather/radar
+- GET /api/v1/weather/current?lat=10.78&lng=106.7
+- GET /api/v1/routes?from_lat=...&from_lng=...&to_lat=...&to_lng=...
+- POST /api/internal/ingest/afsc (Authorization: Bearer CRON_SECRET)
+
+## Hạ tầng
+- Vercel chạy Next.js (không chạy Socket.io/FFmpeg kéo dài phiên).
+- Supabase Postgres/PostGIS/RLS + Postgres Changes trên incident_events; camera tùy chọn: HLS qua hls.js/Safari chỉ khởi chạy khi click marker và hủy stream khi đóng modal; yêu cầu nguồn HTTPS có CORS hợp lệ.
+- Định tuyến máy chủ OSRM: máy chủ demo chỉ phù hợp phát triển; production bắt buộc đặt ROUTING_BASE_URL.
+- Không có Upstash Redis ở giai đoạn này; GET nearby đọc DB trực tiếp và polling, chưa đạt mục tiêu cache 1000 request/30s.
+- Thực tế production cần CDN/tile provider có SLA, IP rate limit phân tán, quy trình kiểm duyệt, GPS attestation, tích hợp giao thông cấp phép, quan trắc mực nước đủ phủ, kiểm thử đường sát thực địa.
+
+================
+File: docs/CAMERA-SOURCES.md
+================
+# CityPass — nguồn camera (trạng thái chưa xác minh hoạt động/giấy phép)
+
+Nguồn tham khảo do người dùng cung cấp: https://rin2401.github.io/map/ (https://github.com/rin2401/map/blob/master/index.html)
+
+Mã của nguồn này đọc Google Visualization Sheet (gid=382031510) gồm `lat`, `lng`, `location`, `cam_id`, `angle`, `status`; đường dẫn ảnh gốc đến `giaothong.hochiminhcity.gov.vn/render/ImageHandler.ashx?id=...`. Đây là ảnh snapshot, không phải RTSP/HLS video.
+
+Chỉ dùng tab camera, tuyệt đối không nhập hoặc hiện tab chứa mật khẩu Wi-Fi trong bản gốc. Không sao chép mã script, không gửi mật khẩu.
+
+CityPass fetch danh mục server-side (cache 60s), kiểm tra dữ liệu + khoanh vùng, trả ảnh origin cho client khi click. Không proxy ảnh để tránh vượt giới hạn của nhà cung cấp. Ngừng dịch vụ khi máy chủ từ chối hoặc chưa có phép sử dụng thương mại. Khi thấy 403/hình lỗi, tắt `CITYPASS_PUBLIC_CAMERAS=false`.
+
+Repo https://github.com/LeNguyenGiaBao/vehicle_detection là Streamlit/SSD; repo https://github.com/Tank97king/Nhan_dien_phuong_tien_giao_thong_va_bien_so_xe dùng FastAPI/YOLO/OCR. Không có endpoint hosted ổn định để gọi trực tiếp và không cần OCR biển số cho chức năng cảnh báo ngập.
+
+Datastore API resource `6211b28e-34b6-474d-981b-2ab2a3681c67`: ID được cung cấp nhưng chưa xác thực schema/mục đích. Không dùng làm nguồn cảnh báo/ngập/ảnh cho tới khi có thông tin và quyền sử dụng rõ ràng.
+
+================
+File: docs/GOOGLE-MAPS-HANDOFF.md
+================
+# CityPass v0.5.1 — Bàn giao tuyến sang Google Maps
+
+- Trong bảng **Tìm đường**, chọn điểm đi và đến rồi chọn **Tìm và so sánh tuyến**.
+- Chạm **Tuyến 1, Tuyến 2…** để chọn kết quả có độ trễ giao thông và cảnh báo ngập theo CityPass.
+- Chọn phương tiện (ô tô, xe máy nếu Google Maps hỗ trợ), và bật/tắt tùy chọn gửi ba điểm trung gian.
+- Bấm **Mở Google Maps để dẫn đường**. Google Maps sẽ mở tab/app bên ngoài và có thể chỉ hiển thị bản xem trước nếu điểm đi khác vị trí hiện tại.
+
+## Điều kiện và giới hạn
+
+Liên kết Maps URLs không cần Google Maps API Key và không lộ TOMTOM_API_KEY. CityPass gửi điểm xuất phát, điểm đến, chế độ và tùy chọn tối đa ba điểm trung gian sampled theo hình học tuyến đang **được chọn**. Google Maps **không hỗ trợ nhập nguyên vẹn geometry/polyline từ TomTom hoặc OSRM vào dẫn đường công cộng**: dịch vụ này sẽ tự tính toán đường đi, tốc độ, ETA và có thể bỏ/đổi đường so với đề xuất CityPass. Chức năng xe máy tùy phạm vi hỗ trợ của Google Maps; các kết quả CityPass vẫn dựa vào định tuyến ô tô. Không cam kết đường đi an toàn, tránh ngập hay phù hợp xe máy.
+
+Tài liệu Google Maps URLs: https://developers.google.com/maps/documentation/urls/get-started
+
+================
+File: docs/INTEGRATIONS.md
+================
+# Thông tin cần có để kết nối dữ liệu thật
+
+## AFSC
+Hiện **chưa có** URL endpoint chính thức, token và hợp đồng response. Không được coi đây là dữ liệu thực khi thiếu những thứ đó. Adapter duy nhất là `src/lib/afsc/adapter.ts`, hiện chỉ chấp nhận mảng:
+
+```json
+[{"sensor_id":"SENSOR_123", "lat":10.7, "lng":106.7, "water_level_cm":12, "observed_at":"2026-10-08T01:00:00Z"}]
+```
+Đây là **định dạng trung gian mà ứng dụng định nghĩa**, không được mô tả là JSON chính thức của AFSC. Cần bản quyền sử dụng/điều khoản, IDs trạm đo, thời hạn hết hạn sensor (đang tạm 120 phút), xác nhận ngưỡng 20 và 35 cm, giới hạn API, cơ chế chống đo lỗi.
+
+## Radar / thời tiết
+- RainViewer: https://www.rainviewer.com/api.html. MVP 0.2 đọc tối đa 12 khung radar gần đây từ weather-maps.json, phát timeline và tùy chỉnh opacity. Chỉ ảnh radar quá khứ, không phải dự báo tương lai. Có thể không phủ vùng muốn xem; giới hạn native zoom 7. API public không có SLA, cần ghi nguồn RainViewer.
+- Open-Meteo: https://open-meteo.com/en/docs. Giá trị current precipitation từ mô hình, không dùng suy ra độ sâu ngập.
+
+## Định tuyến
+- Mặc định development: https://router.project-osrm.org, có thể gián đoạn và giới hạn truy cập.
+- Production: đặt `ROUTING_BASE_URL` đến OSRM do mình vận hành hoặc dịch vụ có hợp đồng. Hiện không có dữ liệu đường đóng chính thức, không hiển thị rẽ trái/phải để điều hướng xe máy.
+
+## Camera
+- Cần nguồn video HLS/WebRTC hợp pháp, địa chỉ, quyền hiển thị, độ trễ, CORS, chính sách băng thông. MVP phát luồng HLS qua hls.js nếu stream HTTPS hợp lệ và có CORS; không có FFmpeg proxy để chuyển RTSP hoặc sửa CORS.
+
+## Thỏa thuận
+- Biên mức 20cm: mức 2; 35cm: mức 2; trên 35cm: mức 3 (theo đặc tả gửi kèm).
+- Xung đột confirm / false_alarm: ưu tiên HIDDEN.
+- Đăng nhập để báo cáo và xác minh.
+- MVP vùng TP.HCM; các tỉnh khác hiển thị bản đồ/radar nhưng chưa có giám sát chất lượng ngập.
+
+================
+File: docs/SECURITY.md
+================
+# Ràng buộc tin cậy và bảo mật
+
+1. **Mô hình không tự chứng nhận tuyến đường khô ráo.** Không suy từ thiếu báo cáo thành an toàn. Cần từ chối chỉ đường đi qua vùng ngập nặng nếu có đóng đường/truy cập dữ liệu độ sâu theo toàn tuyến đáng tin.
+2. **Báo cáo cộng đồng có thể sai.** Ở bản MVP, server đo khoảng cách từ tọa độ GPS trình duyệt gửi lên tới incident bằng PostGIS, nhưng không thể xác thực vị trí vật lý của thiết bị. Kẻ gian có thể giả mạo GPS. Không dùng 3 phiếu = bằng chứng chắc chắn; cần attestation, lịch sử uy tín, phát hiện Sybil / kiểm duyệt trước sản xuất.
+3. Chỉ người dùng xác thực bằng Supabase mới POST báo cáo/xác minh. SQL function dùng `service_role` qua server; public RLS chỉ đọc. Mỗi người một phiếu, người viết báo cáo không được tự xác minh.
+4. RPC giới hạn tối đa 3 báo cáo/giờ/tài khoản. Chưa có rate limit theo IP phân tán (chỉ nên mở public sau khi cấu hình Upstash / WAF).
+5. Ảnh ở bucket public tối đa 5 MB JPEG/PNG/WebP; người dùng chịu trách nhiệm tránh ảnh chứa thông tin cá nhân/biển số. Bản production cần moderation, chống file độc và xử lý quyền riêng tư.
+6. AFSC/API token, CRON_SECRET, SUPABASE_SERVICE_ROLE_KEY chỉ ở .env.local hoặc Vercel server env. Không chia sẻ với client. Phiên bản demo không gọi AFSC.
+7. Camera chỉ hiển thị metadata của nguồn được phép, không phát stream khi chưa có quyền sử dụng + CORS/stream adapter.
+8. Realtime đổi theo ô lưới 2km tại vùng trung tâm 3×3 ô; ngoài vùng đó, polling 30 giây đồng bộ. Chưa có websocket gateway theo viewport đầy đủ.
+9. RainViewer API chỉ dành cho cá nhân/giáo dục/cộng đồng quy mô nhỏ và có giới hạn; cần xem xét quyền sử dụng nếu thương mại. Nguồn định tuyến OSRM thử nghiệm cũng không có SLA.
+10. Nên bật Supabase bot protection, CAPTCHA, email limits; giới hạn nguồn login và thêm audit trail khi ra sản phẩm thực tế.
+
+================
+File: docs/TRAFFIC-SETUP.md
+================
+# CityPass v0.5 – Giao thông theo tuyến (TomTom, tùy chọn)
+
+## Lấy khóa TomTom
+1. Mở https://developer.tomtom.com/ , đăng ký/đăng nhập TomTom.
+2. Vào **API & SDK Keys**, lấy key có quyền dùng Routing API và Traffic API. Theo dõi hạn mức và giá tại tài khoản.
+3. Thêm `TOMTOM_API_KEY=...` trong `.env.local`, **không dùng** `NEXT_PUBLIC_TOMTOM_API_KEY`.
+4. Dừng `npm run dev` và chạy lại. Bật lớp **Giao thông / kẹt xe** ở sidebar.
+
+Không có key: CityPass không hiển thị màu ùn tắc; tính tuyến OSRM thử nghiệm như trước.
+
+## Dữ liệu
+- `/api/v1/traffic/areas`: 10 đoạn đường đại diện được lấy từ TomTom Flow Segment Data, giới hạn đồng thời 3 yêu cầu, cache tiến trình 90 giây. Đây **không phải** tốc độ trung bình của một quận.
+- `/api/v1/traffic/tile`: ảnh đường theo Flow Tiles, giới hạn zoom 10–18 và phạm vi TP.HCM mở rộng; key ở server.
+- `/api/v1/routes`: khi key hợp lệ, TomTom Routing tính đường ô tô có xét traffic hiện tại và các phương án thay thế; giữ ưu tiên tránh báo ngập **đã kết nối database**. Nếu TomTom thất bại, thử OSRM và gắn nhãn rõ **không có traffic trực tiếp**.
+
+## Giới hạn và bảo mật
+- Kết quả không bảo đảm tuyến nhanh nhất vào đúng thời điểm khởi hành; lưu lượng thay đổi liên tục, dữ liệu TomTom có độ trễ/phạm vi phủ khác nhau.
+- Tuyến xe ô tô không khẳng định phù hợp với xe máy; không thể bảo đảm tránh ngập nếu chưa có cảm biến/báo cáo xác minh.
+- Để triển khai công khai nhiều người dùng: cài **rate limit chia sẻ** (Redis/Upstash), chống abuse các API traffic tile/areas/routes; cân nhắc hạn mức TomTom và điều kiện sử dụng dịch vụ. Bản này dành cho thử nghiệm MVP, không có distributed rate limiter.
+- Chỉ cấu hình key trong server (.env.local ở máy cá nhân, Env Variables của Vercel); không commit key. Proxy có thể tạo chi phí API. Cấu hình giới hạn usage/billing trước khi mở công khai.
+- TomTom Maps Traffic Flow v4: https://docs.tomtom.com/traffic-api/documentation/tomtom-maps/v1/traffic-flow/raster-flow-tiles
+- TomTom Routing: https://docs.tomtom.com/routing-api/documentation/tomtom-maps/v1/calculate-route
+
+================
+File: docs/WEATHER-COVERAGE.md
+================
+# CityPass — thời tiết theo khu vực TP.HCM (v0.4)
+
+- `GET /api/v1/weather/areas` gọi một request gộp nhiều tọa độ Open-Meteo, cache 300 giây ở server. Giao diện làm mới mỗi 5 phút; khi lỗi không hiển thị nắng giả.
+- 22 điểm lấy mẫu là các **điểm đại diện**, không phải trạm đo tại vị trí GPS; tên khu vực là địa danh quen thuộc, không tuyên bố là ranh giới hành chính.
+- `current.precipitation` (mm / 15 phút) là số liệu **mô hình**; `hourly.precipitation_probability` là dự báo tỷ lệ phần trăm, không phải ghi nhận thực tế.
+- Hình radar nếu có là lớp *quan trắc* riêng; màu điểm ngập là dữ liệu khác. Không suy ra ngập hay an toàn di chuyển từ mô hình thời tiết.
+- Open-Meteo API miễn phí dành cho sử dụng phi thương mại theo điều khoản của họ. Nếu CityPass thương mại/hệ thống sản xuất lớn cần hợp đồng/giấy phép phù hợp.
+- Nếu muốn biết đang mưa thật theo từng đường, cần một trong các nguồn độc lập: radar có phủ sóng, trạm mưa có metadata tọa độ và thời gian, hoặc báo cáo cộng đồng được xác thực.
+- Test: `npm run typecheck && npm run lint && npm test && npm run build`.
+
+================
+File: eslint.config.mjs
+================
+import { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+import { FlatCompat } from "@eslint/eslintrc";
+const compat = new FlatCompat({ baseDirectory: dirname(fileURLToPath(import.meta.url)) });
+const eslintConfig = [
+  ...compat.extends("next/core-web-vitals", "next/typescript"),
+  { ignores: [".next/**", "node_modules/**", "next-env.d.ts"] }
+];
+export default eslintConfig;
+
+================
+File: next-env.d.ts
+================
+/// <reference types="next" />
+/// <reference types="next/image-types/global" />
+/// <reference path="./.next/types/routes.d.ts" />
+
+// NOTE: This file should not be edited
+// see https://nextjs.org/docs/app/api-reference/config/typescript for more information.
+
+================
+File: next.config.ts
+================
+import type { NextConfig } from "next";
+const nextConfig: NextConfig = {
+  reactStrictMode: true,
+  poweredByHeader: false,
+};
+export default nextConfig;
+
+================
+File: package.json
+================
+{
+  "name": "citypass",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --hostname 0.0.0.0",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "node --experimental-strip-types --test tests/*.test.mjs"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.6.1",
+    "@supabase/supabase-js": "^2.57.0",
+    "leaflet": "^1.9.4",
+    "hls.js": "^1.6.0",
+    "lucide-react": "^0.468.0",
+    "next": "^15.5.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-leaflet": "^5.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.0",
+    "@eslint/eslintrc": "^3.1.0",
+    "@types/leaflet": "^1.9.12",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "^15.5.0",
+    "tailwindcss": "^4.1.0",
+    "typescript": "^5.7.0"
+  }
+}
+
+================
+File: postcss.config.mjs
+================
+const postcssConfig = { plugins: { "@tailwindcss/postcss": {} } };
+export default postcssConfig;
+
+================
+File: README.md
+================
+# CityPass v0.3 — Radar mưa, GPS, tìm đường và camera giao thông
+
+Website Next.js App Router. Bản đồ hoạt động độc lập với AFSC/Supabase. Mở `http://localhost:3000` sau khi chạy `npm run dev`.
+
+## Cập nhật dự án đang có
+
+Chỉ tải file `Update-CityPass-v0.3.0.ps1` vào `D:\Downloads` và chạy:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "D:\Downloads\Update-CityPass-v0.3.0.ps1" -TargetPath "D:\freetime\LoiRao-FloodMap"
+cd "D:\freetime\LoiRao-FloodMap"
+npm run dev
+```
+
+Giữ nguyên tên thư mục trên Windows để các lệnh cập nhật cũ không bị lỗi. Tên thương hiệu trong UI, metadata và package.json đã đổi thành **CityPass**. Nếu muốn di chuyển cả thư mục, tắt ứng dụng trước và sửa đường dẫn `-TargetPath` ở những bản vá sau.
+
+Script sao lưu các file trước khi sửa, không thay đổi `.env.local`; hỗ trợ nâng cấp trực tiếp từ mã gốc v0.1 hoặc v0.2 nếu file chưa tự chỉnh sửa. Sau patch script chạy typecheck/lint/test khi `node_modules` đã tồn tại.
+
+## Camera giao thông
+
+- Danh sách camera ảnh tĩnh được đọc **chỉ từ tab camera** của Google Sheet dùng bởi <https://rin2401.github.io/map/>. Nguồn bên ngoài có thể đổi/giới hạn/ngừng truy cập.
+- Hình camera được tải **trực tiếp từ máy chủ ảnh của Cổng thông tin giao thông TP.HCM** ở trình duyệt, chỉ khi người dùng mở camera. Không proxy, ghi hình, lưu trữ hay nhận diện biển số.
+- Ảnh cập nhật theo yêu cầu mỗi 30 giây khi popup mở, nhưng thời gian chụp gốc không xác nhận được. Nếu nguồn từ chối hotlink, app báo lỗi và có liên kết mở nguồn.
+- Camera HLS từ bảng Supabase vẫn được hỗ trợ nếu đã được cấp quyền truy cập.
+- Để tắt danh mục camera bên ngoài, thêm vào `.env.local`: `CITYPASS_PUBLIC_CAMERAS=false` rồi restart.
+- **Bản đồ/chỉ dẫn không dùng hình camera để suy ra đường ngập, không hứa tuyến an toàn.**
+- Trước khi đưa website ra công khai, xác minh quyền sử dụng và hạn mức tại phía chủ camera và tác giả dữ liệu.
+
+## Các nguồn khác
+
+- Datastore API TP.HCM với resource ID `6211b28e-34b6-474d-981b-2ab2a3681c67`: tài liệu cung cấp chỉ là cú pháp Datastore; chưa xác nhận tài nguyên đó là camera hoặc bản đồ ngập nên chưa đưa vào lớp dữ liệu.
+- CSV `edu_ds_donvi_khoi_ttgdtx_2.csv` là danh sách đơn vị giáo dục thường xuyên, không liên quan đến camera/ngập.
+- Hai repository nghiên cứu nhận diện xe/biển số là các hệ thống Python AI độc lập, chưa dùng trong MVP để tránh nhận diện biển số cá nhân và tăng chi phí vận hành.
+
+## Xác minh trước khi triển khai
+
+```powershell
+npm install
+npm run typecheck
+npm run lint
+npm test
+npm run build
+```
+
+Không đặt service-role key ở phía trình duyệt. Radar RainViewer là ảnh mưa trong quá khứ gần, không phải dự báo. Tuyến OSRM demo là tuyến đường ô tô chưa xác thực điều kiện xe máy và không biết ngập thật khi chưa có cảm biến.
+
+================
+File: scripts/Inspect-LoiRao.ps1
+================
+# Script kiểm tra cơ bản; KHÔNG tự sửa code hay thay đổi dữ liệu.
+[CmdletBinding()]
+param([string]$TargetPath = 'D:\freetime\LoiRao-FloodMap')
+$ErrorActionPreference = 'Stop'
+if (-not (Test-Path (Join-Path $TargetPath 'package.json'))) { throw "Khong tim thay $TargetPath" }
+Push-Location $TargetPath
+try {
+  foreach ($task in @('typecheck', 'lint', 'test', 'build')) {
+    Write-Host "Checking $task" -ForegroundColor Cyan
+    & npm.cmd run $task
+    if ($LASTEXITCODE -ne 0) { throw "Failed at $task (exit=$LASTEXITCODE)" }
+  }
+  Write-Host 'All checks passed' -ForegroundColor Green
+} finally { Pop-Location }
+
+================
+File: src/app/api/internal/ingest/afsc/route.ts
+================
+import { NextResponse } from "next/server";
+import { adminDb } from "@/lib/supabase/server";
+import { floodSeverity, SENSOR_TTL_MINUTES } from "@/lib/config";
+import { parseAfscPayload } from "@/lib/afsc/adapter";
+import { jsonError } from "@/lib/http";
+export const dynamic = "force-dynamic";
+export async function POST(request: Request) {
+  if (!process.env.CRON_SECRET || request.headers.get("Authorization") !== `Bearer ${process.env.CRON_SECRET}`) return jsonError("Không được phép", 401);
+  const endpoint = process.env.AFSC_API_URL, token = process.env.AFSC_API_TOKEN;
+  const db = adminDb();
+  if (!endpoint || !token || !db) return jsonError("Chưa thiết lập AFSC hoặc cơ sở dữ liệu", 503);
+  let url: URL;
+  try { url = new URL(endpoint); if (url.protocol !== "https:") throw Error(); }
+  catch { return jsonError("AFSC_API_URL phải là HTTPS", 503); }
+  try {
+    const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(15000), cache: "no-store" });
+    if (!response.ok) throw Error("Không nhận được dữ liệu cảm biến");
+    const readings = parseAfscPayload(await response.json());
+    if (readings.length > 2000) return jsonError("Quá nhiều mẫu cảm biến trong một lượt", 413);
+    let updated = 0, cleared = 0;
+    for (const r of readings) {
+      if (r.observed_at) {
+        const ageMs = Date.now() - Date.parse(r.observed_at);
+        if (ageMs > 15 * 60_000 || ageMs < -5 * 60_000) continue;
+      }
+      const severity = floodSeverity(r.water_level_cm);
+      if (severity === 0) {
+        const { error } = await db.from("incidents").update({ status: "HIDDEN", expires_at: new Date().toISOString() }).eq("sensor_id", r.sensor_id);
+        if (error) throw error;
+        cleared++;
+        continue;
+      }
+      const { error } = await db.from("incidents").upsert({
+        sensor_id: r.sensor_id, type: "FLOOD", severity, water_depth_cm: r.water_level_cm,
+        latitude: r.lat, longitude: r.lng, source: "AFSC_SENSOR", status: "ACTIVE",
+        title: `Điểm đo ${r.sensor_id}`, description: "Ghi nhận từ nguồn cảm biến đã cấu hình", created_at: r.observed_at || new Date().toISOString(),
+        expires_at: new Date(Date.now() + SENSOR_TTL_MINUTES * 60_000).toISOString()
+      }, { onConflict: "sensor_id" });
+      if (error) throw error;
+      updated++;
+    }
+    return NextResponse.json({ ok: true, updated, cleared, received: readings.length });
+  } catch (error) { console.error("AFSC ingest failed", error); return jsonError("Không thể đồng bộ dữ liệu cảm biến. Kiểm tra định dạng API và quyền truy cập.", 502); }
+}
+
+================
+File: src/app/api/v1/cameras/route.ts
+================
+import { NextRequest, NextResponse } from "next/server";
+import { adminDb } from "@/lib/supabase/server";
+import { getNumber } from "@/lib/config";
+import { jsonError } from "@/lib/http";
+import { CAMERA_SHEET_GID, CAMERA_SHEET_ID, nearbyPublicCameras, parseCameraSheet } from "@/lib/camera-catalog";
+import type { Camera } from "@/lib/types";
+
+export const dynamic = "force-dynamic";
+
+/** Public source is best-effort and can be disabled without affecting the map. */
+async function getPublicCameras(lat: number, lng: number, radiusKm: number): Promise<Camera[]> {
+  if (process.env.CITYPASS_PUBLIC_CAMERAS === "false") return [];
+  const uri = `https://docs.google.com/spreadsheets/d/${CAMERA_SHEET_ID}/gviz/tq?tqx=out:json&gid=${CAMERA_SHEET_GID}`;
+  const response = await fetch(uri, { next: { revalidate: 60 }, signal: AbortSignal.timeout(8000) });
+  if (!response.ok) throw new Error(`Camera catalog unavailable (${response.status})`);
+  const text = await response.text();
+  return nearbyPublicCameras(parseCameraSheet(text), lat, lng, radiusKm);
+}
+
+export async function GET(request: NextRequest) {
+  const q = request.nextUrl.searchParams;
+  const lat = getNumber(q.get("lat"), -90, 90), lng = getNumber(q.get("lng"), -180, 180);
+  const radius = q.has("radius_km") ? getNumber(q.get("radius_km"), .1, 30) : 5;
+  if (lat === null || lng === null || radius === null) return jsonError("Tọa độ / bán kính không hợp lệ");
+
+  // Data from the city's own database, if configured, is independent of the external sheet.
+  const db = adminDb();
+  const [publicResult, databaseResult] = await Promise.allSettled([
+    getPublicCameras(lat, lng, radius),
+    db ? db.rpc("nearby_cameras", { p_lat: lat, p_lng: lng, p_radius_km: radius }) : Promise.resolve({ data: [] as Camera[], error: null })
+  ]);
+  const publicCameras = publicResult.status === "fulfilled" ? publicResult.value : [];
+  const fromDb = databaseResult.status === "fulfilled" && !databaseResult.value.error
+    ? (databaseResult.value.data ?? []) as Camera[] : [];
+  const cameras = [...fromDb, ...publicCameras];
+  const warning = publicResult.status === "rejected"
+    ? "Danh sách camera công khai tạm thời không truy cập được hoặc không cho phép đọc. Thử lại sau."
+    : databaseResult.status === "rejected" || databaseResult.value.error
+      ? "Không tải được một phần camera từ cơ sở dữ liệu."
+      : null;
+  return NextResponse.json({ cameras, mode: db ? "mixed" : "public_snapshots", warning }, {
+    headers: { "Cache-Control": "public, max-age=0, s-maxage=30" }
+  });
+}
+
+================
+File: src/app/api/v1/incidents/nearby/route.ts
+================
+import { NextRequest, NextResponse } from "next/server";
+import { adminDb, isDatabaseReady } from "@/lib/supabase/server";
+import { DEMO_INCIDENTS } from "@/lib/demo";
+import { getNumber, haversineMeters } from "@/lib/config";
+import { jsonError, noStoreHeaders } from "@/lib/http";
+import type { Incident, IncidentStatus, IncidentType, IncidentSource } from "@/lib/types";
+
+export const dynamic = "force-dynamic";
+type Row = {
+  id: string; type: IncidentType; severity: 1 | 2 | 3; title: string;
+  description: string | null; water_depth_cm: number | null; latitude: number; longitude: number;
+  source: IncidentSource; sensor_id: string | null; status: IncidentStatus;
+  photo_url: string | null; confirms: number; rejects: number;
+  created_at: string; expires_at: string | null;
+};
+function serialize(row: Row): Incident {
+  return {
+    id: row.id, type: row.type, severity: row.severity, title: row.title,
+    description: row.description, water_depth_cm: row.water_depth_cm,
+    geometry: { type: "Point", coordinates: [Number(row.longitude), Number(row.latitude)] },
+    source: row.source, sensor_id: row.sensor_id, status: row.status,
+    photo_url: row.photo_url, crowd_verifications: { confirms: Number(row.confirms), rejects: Number(row.rejects) },
+    created_at: row.created_at, expires_at: row.expires_at
+  };
+}
+export async function GET(request: NextRequest) {
+  const p = request.nextUrl.searchParams;
+  const lat = getNumber(p.get("lat"), -90, 90), lng = getNumber(p.get("lng"), -180, 180);
+  const radius = p.has("radius_km") ? getNumber(p.get("radius_km"), .1, 30) : 5;
+  if (lat === null || lng === null || radius === null) return jsonError("Tọa độ hoặc bán kính không hợp lệ");
+  if (!isDatabaseReady) return NextResponse.json({ mode: "demo", incidents: DEMO_INCIDENTS.filter(x => haversineMeters([lat, lng], [x.geometry.coordinates[1], x.geometry.coordinates[0]]) <= radius * 1000) }, { headers: noStoreHeaders });
+  const db = adminDb();
+  if (!db) return jsonError("Cơ sở dữ liệu chưa sẵn sàng", 503);
+  const { data, error } = await db.rpc("nearby_incidents", { p_lat: lat, p_lng: lng, p_radius_km: radius });
+  if (error) return jsonError("Không truy vấn được sự cố. Kiểm tra migration Supabase.", 503);
+  return NextResponse.json({ mode: "live", incidents: ((data ?? []) as Row[]).map(serialize) }, { headers: noStoreHeaders });
+}
+
+================
+File: src/app/api/v1/reports/[id]/verify/route.ts
+================
+import { NextResponse } from "next/server";
+import { adminDb, readAuthorizedUser } from "@/lib/supabase/server";
+import { pointIsValid } from "@/lib/config";
+import { jsonError } from "@/lib/http";
+export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
+  const actor = await readAuthorizedUser(request);
+  if (!actor) return jsonError("Cần đăng nhập để xác minh", 401);
+  const { id } = await context.params;
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return jsonError("ID không hợp lệ");
+  let body: Record<string, unknown>;
+  try { body = await request.json(); } catch { return jsonError("JSON không hợp lệ"); }
+  const { vote_type, lat, lng, accuracy_m } = body;
+  if (vote_type !== "confirm" && vote_type !== "false_alarm") return jsonError("Phiếu không hợp lệ");
+  if (typeof lat !== "number" || typeof lng !== "number" || !pointIsValid(lat, lng)) return jsonError("Cần tọa độ GPS hợp lệ");
+  if (typeof accuracy_m !== "number" || !Number.isFinite(accuracy_m) || accuracy_m < 0 || accuracy_m > 100) return jsonError("Cần GPS độ chính xác tối đa 100 m");
+  const db = adminDb();
+  if (!db) return jsonError("Chưa kết nối cơ sở dữ liệu", 503);
+  const { data, error } = await db.rpc("verify_community_report", { p_actor: actor, p_report_id: id, p_vote_type: vote_type, p_lat: lat, p_lng: lng, p_accuracy_m: accuracy_m });
+  if (error) return jsonError(error.message.includes("duplicate key") ? "Bạn đã xác minh điểm này." : "Không chấp nhận phiếu: chỉ người dùng ở gần, không phải tác giả, chưa bỏ phiếu và còn trong thời hạn mới được xác minh.", 400);
+  return NextResponse.json({ status: data?.status ?? "PENDING", ok: true });
+}
+
+================
+File: src/app/api/v1/reports/route.ts
+================
+import { NextResponse } from "next/server";
+import { adminDb, readAuthorizedUser } from "@/lib/supabase/server";
+import { pointIsValid } from "@/lib/config";
+import { jsonError } from "@/lib/http";
+
+function approvedPhotoUrl(value: unknown, userId: string): value is string | null {
+  if (value === undefined || value === null || value === "") return true;
+  if (typeof value !== "string" || value.length > 1000) return false;
+  try {
+    const storageHost = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL || "https://invalid.local").host;
+    const url = new URL(value);
+    return url.protocol === "https:" && url.host === storageHost && url.pathname.startsWith(`/storage/v1/object/public/report-photos/${userId}/`) && !url.username && !url.password;
+  } catch { return false; }
+}
+export async function POST(request: Request) {
+  const user = await readAuthorizedUser(request);
+  if (!user) return jsonError("Cần đăng nhập để báo cáo", 401);
+  let body: Record<string, unknown>;
+  try { body = await request.json(); } catch { return jsonError("JSON không hợp lệ"); }
+  const { type, lat, lng, severity, note, photo_url } = body;
+  if (type !== "FLOOD" && type !== "TRAFFIC_JAM") return jsonError("Loại báo cáo không hợp lệ");
+  if (typeof lat !== "number" || typeof lng !== "number" || !pointIsValid(lat, lng)) return jsonError("Tọa độ không hợp lệ");
+  if (typeof severity !== "number" || ![1, 2, 3].includes(severity) || !Number.isInteger(severity)) return jsonError("Mức độ chỉ nhận 1, 2 hoặc 3");
+  if (typeof note !== "string" || note.trim().length < 10 || note.length > 500) return jsonError("Mô tả cần từ 10 đến 500 ký tự");
+  if (!approvedPhotoUrl(photo_url, user)) return jsonError("Ảnh không thuộc Supabase Storage đã cấu hình");
+  const db = adminDb();
+  if (!db) return jsonError("Chưa kết nối cơ sở dữ liệu", 503);
+  const { data, error } = await db.rpc("submit_community_report", { p_actor: user, p_type: type, p_lat: lat, p_lng: lng, p_severity: severity, p_note: note.trim(), p_photo_url: photo_url ?? null });
+  if (error) return jsonError(error.message.includes("RATE_LIMIT") ? "Bạn đang báo cáo quá nhanh. Thử lại sau ít phút." : "Không tạo được báo cáo", error.message.includes("RATE_LIMIT") ? 429 : 400);
+  return NextResponse.json({ id: data, status: "PENDING" }, { status: 201 });
+}
+
+================
+File: src/app/api/v1/routes/route.ts
+================
+import { NextRequest, NextResponse } from "next/server";
+import { adminDb, isDatabaseReady } from "@/lib/supabase/server";
+import { getNumber, haversineMeters, routeNearPoint } from "@/lib/config";
+import { jsonError } from "@/lib/http";
+import type { RouteOption } from "@/lib/types";
+export const dynamic = "force-dynamic";
+type UpstreamRoute = { distance: number; duration: number; geometry: { coordinates: [number, number][]; type: string } };
+type Hazard = { id: string; severity: number; latitude: number; longitude: number; status: string };
+type Candidate = { distance: number; duration: number; coords: [number, number][]; delay?: number };
+
+async function tomtomCandidates(from: [number, number], to: [number, number], key: string): Promise<Candidate[]> {
+  const url = new URL(`https://api.tomtom.com/routing/1/calculateRoute/${from[0]},${from[1]}:${to[0]},${to[1]}/json`);
+  url.search = new URLSearchParams({ key, traffic: "true", departAt: "now", routeType: "fastest", maxAlternatives: "2", travelMode: "car", routeRepresentation: "polyline" }).toString();
+  const response = await fetch(url, { signal: AbortSignal.timeout(8500), cache: "no-store" });
+  if (!response.ok) throw Error(`TomTom Routing lỗi HTTP ${response.status}`);
+  const body = await response.json() as { routes?: { summary?: { lengthInMeters?: number; travelTimeInSeconds?: number; trafficDelayInSeconds?: number }; legs?: { points?: { latitude: number; longitude: number }[] }[] }[] };
+  if (!Array.isArray(body.routes)) throw Error("Không có kết quả TomTom");
+  return body.routes.slice(0, 3).flatMap(route => {
+    const summary = route.summary;
+    const coords: [number, number][] = (route.legs ?? []).flatMap(leg => (leg.points ?? []).map(p => [p.latitude, p.longitude] as [number, number]));
+    if (!summary || !Number.isFinite(summary.lengthInMeters) || !Number.isFinite(summary.travelTimeInSeconds) || coords.length < 2 || coords.some(p => !p.every(Number.isFinite))) return [];
+    return [{ distance: summary.lengthInMeters!, duration: summary.travelTimeInSeconds!, coords, delay: summary.trafficDelayInSeconds }];
+  });
+}
+async function osrmCandidates(from: [number, number], to: [number, number]): Promise<Candidate[]> {
+  const upstream = process.env.ROUTING_BASE_URL || (process.env.NODE_ENV === "production" ? "" : "https://router.project-osrm.org");
+  if (!upstream) throw Error("Chưa cấu hình ROUTING_BASE_URL; không thể chuyển sang chế độ định tuyến dự phòng.");
+  let base: URL;
+  try { base = new URL(upstream); if (base.protocol !== "https:" && base.hostname !== "localhost") throw Error(); }
+  catch { throw Error("Máy chủ OSRM cấu hình không hợp lệ"); }
+  const url = new URL(`/route/v1/driving/${from[1]},${from[0]};${to[1]},${to[0]}`, base);
+  url.search = new URLSearchParams({ alternatives: "true", steps: "false", geometries: "geojson", overview: "full" }).toString();
+  const response = await fetch(url, { signal: AbortSignal.timeout(9000), cache: "no-store", headers: { "User-Agent": "CityPass/0.5 (traffic prototype)" } });
+  if (!response.ok) throw Error("Dịch vụ OSRM đang tạm ngưng");
+  const data = await response.json() as { code?: string; routes?: UpstreamRoute[] };
+  if (data.code !== "Ok" || !Array.isArray(data.routes)) throw Error("Không tìm được tuyến đường");
+  return data.routes.slice(0, 4).filter(r => Array.isArray(r.geometry?.coordinates) && r.geometry.coordinates.length > 1).map(r => ({
+    distance: r.distance, duration: r.duration, coords: r.geometry.coordinates.map(([lng, lat]) => [lat, lng] as [number, number])
+  }));
+}
+export async function GET(req: NextRequest) {
+  const p = req.nextUrl.searchParams;
+  const a = getNumber(p.get("from_lat"), -90, 90), b = getNumber(p.get("from_lng"), -180, 180);
+  const c = getNumber(p.get("to_lat"), -90, 90), d = getNumber(p.get("to_lng"), -180, 180);
+  if ([a,b,c,d].some(n => n === null)) return jsonError("Tọa độ không hợp lệ");
+  const from: [number, number] = [a!, b!], to: [number, number] = [c!, d!];
+  if (haversineMeters(from, to) > 60_000 || haversineMeters(from, to) < 30) return jsonError("Chỉ hỗ trợ tuyến 30 m đến 60 km trong MVP");
+  let trafficAware = false;
+  let warning = "Không có dữ liệu kẹt xe trực tiếp: chỉ là tuyến OSRM theo hồ sơ ô tô.";
+  let options: Candidate[] = [];
+  const key = process.env.TOMTOM_API_KEY?.trim();
+  if (key) {
+    try {
+      options = await tomtomCandidates(from, to, key);
+      if (!options.length) throw Error("TomTom không trả tuyến hợp lệ");
+      trafficAware = true; warning = "TomTom Traffic: ETA có xét ùn tắc được mô hình hoá; không bảo đảm xe máy hoặc tránh ngập.";
+    } catch { warning = "TomTom Traffic không sẵn sàng; đã thử tuyến OSRM dự phòng, KHÔNG có ETA theo kẹt xe."; }
+  }
+  try {
+    if (!options.length) options = await osrmCandidates(from, to);
+    let hazards: Hazard[] = [];
+    if (isDatabaseReady) {
+      const db = adminDb();
+      const midpoint: [number, number] = [(from[0] + to[0]) / 2, (from[1] + to[1]) / 2];
+      const radius = Math.min(30, haversineMeters(from, to) / 1000 + 5);
+      const { data, error } = await db!.rpc("nearby_incidents", { p_lat: midpoint[0], p_lng: midpoint[1], p_radius_km: radius });
+      if (error) throw Error("Không truy vấn được dữ liệu ngập để đánh giá tuyến. Không thể so sánh rủi ro.");
+      hazards = (data ?? []) as Hazard[];
+    }
+    const routes: RouteOption[] = options.map((r, i) => {
+      const near = hazards.filter(h => routeNearPoint(r.coords, [Number(h.latitude), Number(h.longitude)]));
+      const risk_score = near.reduce((sum, h) => sum + h.severity * (h.status === "PENDING" ? 0.5 : 1), 0);
+      return { id: `route-${i}`, distance_m: r.distance, duration_s: r.duration, geometry: r.coords, risk_count: near.length, risk_score, nearby_incidents: near.map(h => h.id), traffic_delay_s: trafficAware && typeof r.delay === "number" ? r.delay : undefined };
+    });
+    // Flood risk always takes precedence over ETA when reliable incident data exist.
+    routes.sort((x, y) => x.risk_score - y.risk_score || x.duration_s - y.duration_s);
+    return NextResponse.json({ routes, traffic_aware: trafficAware, routing_provider: trafficAware ? "TomTom Traffic" : "OSRM driving", warning, flood_data_available: isDatabaseReady, disclaimer: "Không có tuyến nào được bảo đảm an toàn hoặc không ngập; tuyến dành cho ô tô có thể không hợp lệ cho xe máy." }, { headers: { "Cache-Control": "no-store" } });
+  } catch (error) { return jsonError(error instanceof Error ? error.message : "Dịch vụ định tuyến chưa sẵn sàng", 503); }
+}
+
+================
+File: src/app/api/v1/traffic/areas/route.ts
+================
+import { NextResponse } from "next/server";
+import { TRAFFIC_POINTS, parseFlow, type TrafficPoint, type TrafficAreaResponse } from "@/lib/traffic";
+export const dynamic = "force-dynamic";
+let cached: { time: number; data: TrafficAreaResponse } | null = null;
+let inFlight: Promise<TrafficAreaResponse> | null = null;
+async function queryTraffic(key: string): Promise<TrafficAreaResponse> {
+  // Ten representative road readings, limited concurrency to avoid API bursts.
+  const output: TrafficPoint[] = [];
+  for (let i = 0; i < TRAFFIC_POINTS.length; i += 3) {
+    const responses = await Promise.allSettled(TRAFFIC_POINTS.slice(i, i + 3).map(async point => {
+      const url = new URL("https://api.tomtom.com/traffic/services/4/flowSegmentData/absolute/14/json");
+      url.searchParams.set("point", `${point.lat},${point.lng}`);
+      url.searchParams.set("unit", "kmph");
+      url.searchParams.set("key", key);
+      const response = await fetch(url, {
+        signal: AbortSignal.timeout(5000), cache: "no-store"
+      });
+      if (!response.ok) throw Error(`Traffic API HTTP ${response.status}`);
+      return parseFlow(point, await response.json() as unknown);
+    }));
+    for (const item of responses) if (item.status === "fulfilled" && item.value) output.push(item.value);
+  }
+  return { configured: true, points: output, updated_at: new Date().toISOString(), source: "TomTom Traffic Flow (nearest road sample)", ...(output.length ? {} : { error: "Chưa lấy được mẫu tốc độ giao thông từ TomTom. Kiểm tra API key/quota." }) };
+}
+export async function GET() {
+  const key = process.env.TOMTOM_API_KEY?.trim();
+  if (!key) return NextResponse.json({ configured: false, points: [], updated_at: null, source: "TomTom", error: "Chưa cấu hình TOMTOM_API_KEY trên máy chủ." } satisfies TrafficAreaResponse, { headers: { "Cache-Control": "no-store" } });
+  if (cached && Date.now() - cached.time < 90_000) return NextResponse.json(cached.data, { headers: { "Cache-Control": "private, max-age=25" } });
+  try {
+    if (!inFlight) inFlight = queryTraffic(key);
+    const data = await inFlight;
+    cached = { data, time: Date.now() };
+    return NextResponse.json(data, { headers: { "Cache-Control": "private, max-age=25" } });
+  } catch { return NextResponse.json({ configured: true, points: [], updated_at: null, source: "TomTom", error: "Không kết nối được dữ liệu ùn tắc." } satisfies TrafficAreaResponse, { status: 503 }); }
+  finally { inFlight = null; }
+}
+
+================
+File: src/app/api/v1/traffic/tile/route.ts
+================
+import { NextRequest, NextResponse } from "next/server";
+export const dynamic = "force-dynamic";
+const transparent = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl4zDoAAAAASUVORK5CYII=", "base64");
+function tileCenter(z: number, x: number, y: number) {
+  const n = 2 ** z;
+  const lng = ((x + .5) / n) * 360 - 180;
+  const t = Math.PI * (1 - 2 * (y + .5) / n);
+  const lat = Math.atan(Math.sinh(t)) * 180 / Math.PI;
+  return { lat, lng };
+}
+export async function GET(req: NextRequest) {
+  const key = process.env.TOMTOM_API_KEY?.trim();
+  if (!key) return new NextResponse(null, { status: 503 });
+  const p = req.nextUrl.searchParams;
+  const z = Number(p.get("z")), x = Number(p.get("x")), y = Number(p.get("y"));
+  if (![z,x,y].every(Number.isInteger) || z < 10 || z > 18 || x < 0 || y < 0 || x >= 2 ** z || y >= 2 ** z) return new NextResponse(null, { status: 400 });
+  const pos = tileCenter(z, x, y);
+  // Only proxy tiles over greater Ho Chi Minh City; prevents using the API as a worldwide tile proxy.
+  if (pos.lat < 10.3 || pos.lat > 11.3 || pos.lng < 106.3 || pos.lng > 107.4) return new NextResponse(new Uint8Array(transparent), { headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=60" } });
+  const url = `https://api.tomtom.com/traffic/map/4/tile/flow/relative0/${z}/${x}/${y}.png?key=${encodeURIComponent(key)}`;
+  try {
+    const upstream = await fetch(url, { headers: { Accept: "image/png" }, cache: "no-store", signal: AbortSignal.timeout(6000) });
+    if (!upstream.ok || !upstream.headers.get("content-type")?.includes("image/png")) return new NextResponse(null, { status: 502 });
+    const bytes = await upstream.arrayBuffer();
+    if (bytes.byteLength > 450_000) return new NextResponse(null, { status: 502 });
+    return new NextResponse(bytes, { headers: { "Content-Type": "image/png", "Cache-Control": "private, max-age=30", "X-Content-Type-Options": "nosniff" } });
+  } catch { return new NextResponse(null, { status: 502 }); }
+}
+
+================
+File: src/app/api/v1/weather/areas/route.ts
+================
+import { NextResponse } from "next/server";
+import { WEATHER_POINTS, parseAreaWeather } from "@/lib/weather-areas";
+
+// A single shared batched request, cached on the server for five minutes.
+// Never send live-unverified weather/sensor claims to clients.
+export async function GET() {
+  const api = new URL("https://api.open-meteo.com/v1/forecast");
+  api.search = new URLSearchParams({
+    latitude: WEATHER_POINTS.map(p => p.lat).join(","),
+    longitude: WEATHER_POINTS.map(p => p.lng).join(","),
+    current: "temperature_2m,precipitation,weather_code,cloud_cover,is_day",
+    hourly: "precipitation_probability",
+    forecast_hours: "3",
+    timezone: "Asia/Ho_Chi_Minh"
+  }).toString();
+  try {
+    const response = await fetch(api, { next: { revalidate: 300 }, signal: AbortSignal.timeout(12000) });
+    if (!response.ok) throw new Error(`Open-Meteo HTTP ${response.status}`);
+    const payload: unknown = await response.json();
+    if (!Array.isArray(payload) || payload.length !== WEATHER_POINTS.length) throw new Error("Unexpected weather data format");
+    const areas = WEATHER_POINTS.flatMap((point, i) => {
+      const area = parseAreaWeather(point, payload[i]);
+      return area ? [area] : [];
+    });
+    if (areas.length < WEATHER_POINTS.length / 2) throw new Error("Missing model data for too many areas");
+    return NextResponse.json({
+      areas,
+      updated_at: new Date().toISOString(),
+      source: "Open-Meteo forecast model",
+      disclaimer: "Ước tính theo ô lưới mô hình, không phải trạm đo mưa trực tiếp. Không dùng làm xác nhận an toàn đường."
+    });
+  } catch {
+    return NextResponse.json({ error: "Chưa lấy được thời tiết theo khu vực. Vui lòng thử lại sau.", areas: [] }, { status: 503, headers: { "Cache-Control": "no-store" } });
+  }
+}
+
+================
+File: src/app/api/v1/weather/current/route.ts
+================
+import { NextRequest, NextResponse } from "next/server";
+import { getNumber } from "@/lib/config";
+import { jsonError } from "@/lib/http";
+export async function GET(req: NextRequest) {
+  const lat = getNumber(req.nextUrl.searchParams.get("lat"), -90, 90);
+  const lng = getNumber(req.nextUrl.searchParams.get("lng"), -180, 180);
+  if (lat === null || lng === null) return jsonError("Tọa độ không hợp lệ");
+  try {
+    const url = new URL("https://api.open-meteo.com/v1/forecast");
+    url.search = new URLSearchParams({ latitude: String(Math.round(lat * 100) / 100), longitude: String(Math.round(lng * 100) / 100), current: "precipitation,temperature_2m", timezone: "Asia/Bangkok", forecast_days: "1" }).toString();
+    const r = await fetch(url, { next: { revalidate: 300 }, signal: AbortSignal.timeout(8000) });
+    if (!r.ok) throw new Error("Weather unavailable");
+    const d = await r.json() as { current?: { precipitation?: number; temperature_2m?: number; time?: string } };
+    return NextResponse.json({ weather: { precipitation: d.current?.precipitation ?? null, temperature: d.current?.temperature_2m ?? null, time: d.current?.time ?? null }, source: "Open-Meteo forecast model, not a rain gauge" });
+  } catch { return NextResponse.json({ weather: null, source: "Open-Meteo" }); }
+}
+
+================
+File: src/app/api/v1/weather/radar/route.ts
+================
+import { NextResponse } from "next/server";
+import { parseRadarFrames } from "@/lib/radar";
+export const revalidate = 300;
+
+export async function GET() {
+  try {
+    const response = await fetch("https://api.rainviewer.com/public/weather-maps.json", {
+      next: { revalidate: 300 }, signal: AbortSignal.timeout(8000)
+    });
+    if (!response.ok) throw new Error("RainViewer not available");
+    const frames = parseRadarFrames(await response.json());
+    if (!frames.length) throw new Error("No radar frames available");
+    return NextResponse.json({
+      frames,
+      radar: frames[frames.length - 1],
+      source: "RainViewer",
+      kind: "recent historical radar; not live ground observation or flood measurement"
+    });
+  } catch {
+    return NextResponse.json({
+      frames: [], radar: null, source: "RainViewer",
+      error: "Không tải được khung ảnh radar. Thử lại sau; radar có thể chưa phủ khu vực đang xem."
+    });
+  }
+}
+
+================
+File: src/app/error.tsx
+================
+"use client";
+export default function Error({ reset }: { reset: () => void }) { return <main className="loading-root"><p>Không thể hiển thị bản đồ lúc này.</p><button onClick={reset}>Thử lại</button></main>; }
+
+================
+File: src/app/globals.css
+================
+@import "tailwindcss";
+@theme {
+  --color-ink: #14322e;
+  --color-ocean: #137d77;
+  --color-pale: #f4f8f5;
+  --color-line: #dce7e2;
+  --font-sans: "Be Vietnam Pro", "Segoe UI", sans-serif;
+}
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: #f4f8f5; color: #14322e; font-size: 14px; }
+button, input, textarea, select { font: inherit; }
+button { cursor: pointer; }
+button:disabled { opacity: .45; cursor: not-allowed; }
+button:focus-visible, input:focus-visible, a:focus-visible, textarea:focus-visible, select:focus-visible { outline: 3px solid #11a18f; outline-offset: 2px; }
+.shell { min-height: 100dvh; display: flex; flex-direction: column; }
+.topbar { height: 73px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 0 26px; background: white; border-bottom: 1px solid #dce7e2; position: relative; z-index: 1010; }
+.brand { display: inline-flex; align-items: center; gap: 12px; text-decoration: none; color: #153a34; white-space: nowrap; }
+.brand-mark { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; color: white; background: #0c6e67; }
+.brand-name { font-weight: 800; font-size: 22px; letter-spacing: -.9px; }
+.brand-sub { color: #749088; display: block; font-size: 10px; font-weight: 600; letter-spacing: .1px; }
+.topbar-center { display: flex; align-items: center; gap: 9px; }
+.top-pill { border-radius: 999px; padding: 10px 14px; display: inline-flex; gap: 9px; align-items: center; font-size: 12px; font-weight: 700; background: #f3f7f5; border: 1px solid #e0e9e4; }
+.live-dot { height: 7px; width: 7px; border-radius: 50%; background: #159568; }
+.top-actions { display: flex; gap: 9px; align-items: center; }
+.btn { min-height: 40px; padding: 0 15px; border-radius: 11px; display: inline-flex; gap: 8px; align-items: center; justify-content: center; font-weight: 700; border: 1px solid #d5e2dc; color: #285149; background: #fff; }
+.btn-primary { color: #fff; border-color: #086c62; background: #086c62; }
+.btn-primary:hover { background: #075a52; }
+.btn-ghost { background: #f4f8f5; border-color: transparent; }
+.app-main { display: flex; min-height: 0; flex: 1; height: calc(100dvh - 73px); }
+.sidebar { width: 360px; flex: 0 0 360px; background: white; border-right: 1px solid #dce7e2; display: flex; flex-direction: column; min-height: 0; z-index: 600; }
+.sidebar-scroll { overflow-y: auto; padding: 24px 20px 30px; }
+.eyebrow { text-transform: uppercase; letter-spacing: 1.4px; font-size: 10px; color: #58857a; font-weight: 800; }
+.heading { font-weight: 800; font-size: 23px; letter-spacing: -1.1px; margin: 6px 0 8px; line-height: 1.35; }
+.subtle { color: #617d74; line-height: 1.65; font-size: 12px; }
+.search-display { border: 1px solid #dce7e2; padding: 13px 13px; width: 100%; border-radius: 12px; display: flex; align-items: center; gap: 10px; text-align: left; background: #f6f9f7; margin-top: 18px; font-weight: 600; }
+.section-title { font-size: 14px; font-weight: 800; letter-spacing: -.3px; }
+.section-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 26px 0 12px; }
+.section-extra { font-size: 11px; color: #2b8272; font-weight: 700; }
+.layer-list { display: flex; flex-direction: column; gap: 9px; }
+.layer-toggle { display: flex; align-items: center; justify-content: space-between; border: 1px solid #e4ece8; padding: 11px 12px; border-radius: 12px; }
+.layer-left { display: flex; align-items: center; gap: 10px; font-weight: 650; }
+.layer-icon { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; }
+.layer-icon.rain { color: #247cc2; background: #e8f3fd; }
+.layer-icon.flood { color: #dc6a3c; background: #fff0e6; }
+.layer-icon.camera { color: #7756bc; background: #f0eafd; }
+.switch { width: 38px; height: 22px; border: 0; padding: 3px; border-radius: 20px; background: #d8e3de; transition: background .15s; }
+.switch[aria-checked="true"] { background: #0a887c; }
+.switch::before { content: ""; display: block; height: 16px; width: 16px; background: white; border-radius: 50%; transition: transform .15s; }
+.switch[aria-checked="true"]::before { transform: translateX(16px); }
+.warning-box { background: #fff8e9; color: #76551a; border: 1px solid #f6e3b3; border-radius: 12px; padding: 12px; display: flex; align-items: flex-start; gap: 10px; line-height: 1.6; font-size: 11px; margin-top: 18px; }
+.incident-item { width: 100%; border: 1px solid #e1ebe7; background: #fff; text-align: left; border-radius: 13px; padding: 13px; display: flex; gap: 11px; margin-bottom: 9px; }
+.incident-item:hover { border-color: #7ebbae; background: #f8fcfa; }
+.severity-pin { flex: 0 0 31px; width: 31px; height: 31px; display: grid; place-items: center; border-radius: 9px; font-weight: 800; font-size: 12px; }
+.severity-1 { background: #fff5c9; color: #8b6500; }
+.severity-2 { background: #fff0db; color: #9d490c; }
+.severity-3 { background: #ffe4e4; color: #ba2929; }
+.incident-main { flex: 1; min-width: 0; }
+.incident-name { font-size: 12px; font-weight: 800; }
+.incident-meta { display: flex; align-items: center; gap: 7px; margin-top: 7px; flex-wrap: wrap; font-size: 10px; color: #607b72; }
+.status-pill { color: #8b6210; background: #fff5df; border-radius: 6px; padding: 3px 6px; font-size: 9px; font-weight: 800; }
+.status-pill.verified { color: #116d48; background: #dff6ea; }
+.map-space { position: relative; flex: 1; min-width: 0; background: #dfeae4; overflow: hidden; }
+.map-canvas { height: 100%; width: 100%; z-index: 1; }
+.map-overlay-top { position: absolute; left: 20px; right: 20px; top: 18px; z-index: 550; display: flex; gap: 10px; justify-content: space-between; align-items: flex-start; pointer-events: none; }
+.map-overlay-top > * { pointer-events: auto; }
+.map-info-chip { color: #20473e; background: rgba(255,255,255,.97); box-shadow: 0 5px 20px #1844331c; border-radius: 12px; padding: 12px 15px; display: flex; align-items: center; gap: 12px; font-size: 11px; }
+.map-info-chip strong { font-size: 13px; }
+.map-tools { display: flex; flex-direction: column; gap: 8px; }
+.tool-btn { display: grid; place-items: center; width: 42px; height: 42px; border: 1px solid #dae6df; border-radius: 12px; background: white; box-shadow: 0 4px 15px #274f3c19; }
+.map-bottom { position: absolute; z-index: 550; left: 20px; bottom: 22px; pointer-events: none; }
+.map-bottom > * { pointer-events: auto; }
+.legend { background: rgba(255,255,255,.96); border: 1px solid #dfebe4; border-radius: 13px; box-shadow: 0 4px 20px #244b3f14; padding: 12px 15px; }
+.legend-items { display: flex; flex-wrap: wrap; gap: 13px; margin-top: 9px; font-size: 10px; font-weight: 650; }
+.legend-dot { display: inline-block; width: 11px; height: 11px; border-radius: 4px; margin-right: 5px; vertical-align: -1px; }
+.route-card { position: absolute; right: 19px; bottom: 20px; width: min(348px, calc(100% - 40px)); z-index: 560; border-radius: 17px; background: #fff; box-shadow: 0 12px 45px #19463536; padding: 17px; max-height: 70%; overflow-y: auto; }
+.route-title { font-size: 16px; font-weight: 800; letter-spacing: -.4px; }
+.route-head { display: flex; gap: 10px; align-items: center; justify-content: space-between; }
+.point-input { background: #f4f8f5; border: 1px solid #dce8e2; width: 100%; border-radius: 10px; padding: 11px 10px; display: flex; align-items: center; gap: 9px; font-size: 11px; text-align: left; min-height: 39px; }
+.point-input.selected { border-color: #3c9e8c; }
+.route-list { display: grid; gap: 8px; margin-top: 11px; }
+.route-option { display: flex; align-items: center; justify-content: space-between; gap: 8px; border: 1px solid #e2ebe7; border-radius: 11px; padding: 11px; text-align: left; width: 100%; background: white; }
+.route-option.current { border-color: #078778; background: #f0fbf7; }
+.modal-backdrop { position: fixed; inset: 0; z-index: 3000; background: #0c241c85; display: grid; place-items: center; padding: 15px; }
+.modal { width: min(440px, 100%); max-height: 95dvh; overflow-y: auto; background: white; border-radius: 18px; padding: 24px; box-shadow: 0 22px 80px #051a1633; }
+.field { display: grid; gap: 7px; margin-top: 13px; font-size: 12px; font-weight: 700; }
+.field input, .field select, .field textarea { border: 1px solid #cbdcd3; border-radius: 10px; padding: 11px; width: 100%; background: #fff; }
+.modal-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.notice-error { margin-top: 11px; color: #b23632; font-size: 12px; line-height: 1.5; }
+.notice-success { margin-top: 11px; color: #087158; font-size: 12px; line-height: 1.5; }
+.empty { padding: 18px; text-align: center; border: 1px dashed #d5e3dc; border-radius: 12px; color: #617d74; font-size: 12px; }
+.leaflet-container { font-family: inherit !important; }
+.leaflet-control-attribution { font-size: 9px !important; }
+.leaflet-popup-content-wrapper { border-radius: 14px !important; }
+.flood-marker { color: white; border: 3px solid white; border-radius: 13px; font-size: 14px; font-weight: 800; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; box-shadow: 0 3px 15px #234d465e; }
+.flood-marker.sev1 { background: #be9210; } .flood-marker.sev2 { background: #d36b24; } .flood-marker.sev3 { background: #cc3538; }
+.flood-marker.pending { border-style: dashed; opacity: .72; }
+.loading-root { min-height: 100dvh; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 16px; }
+@media (max-width: 1020px) { .topbar-center { display: none; } .sidebar { width: 310px; flex-basis: 310px; } .sidebar-scroll { padding: 19px 15px; } }
+@media (max-width: 760px) {
+  .topbar { height: 65px; padding: 0 13px; } .brand-name { font-size: 18px; } .brand-sub { display: none; }
+  .top-actions .btn span { display: none; } .top-actions .btn { min-width: 41px; padding: 0 10px; }
+  .app-main { height: auto; min-height: calc(100dvh - 65px); flex-direction: column; position: relative; }
+  .sidebar { order: 2; width: 100%; flex: 0 0 auto; height: auto; border-top: 1px solid #dce7e2; border-right: 0; }
+  body { font-size: 16px; } .sidebar-scroll { max-height: none; padding: 16px; } .sidebar .subtle { font-size: 14px; } .incident-name { font-size: 13px; } .incident-meta { font-size: 12px; } .sidebar .heading { font-size: 18px; } .layer-list { display: grid; grid-template-columns: repeat(3,1fr); gap: 7px; }
+  .layer-toggle { padding: 7px; gap: 5px; flex-direction: column; } .layer-left { flex-direction: column; gap: 4px; font-size: 10px; }
+  .map-space { order: 1; flex: 0 0 auto; height: min(72dvh, 670px); min-height: 430px; }
+  .map-overlay-top { top: 10px; left: 10px; right: 10px; } .map-info-chip { padding: 9px; font-size: 10px; } .map-info-chip strong { font-size: 11px; }
+  .map-tools { gap: 5px; } .tool-btn { height: 37px; width: 37px; } .map-bottom { left: 10px; bottom: 10px; } .legend { padding: 8px 10px; } .legend-items { gap: 6px; font-size: 9px; }
+  .route-card { right: 10px; bottom: 10px; max-height: 80%; width: min(330px, calc(100% - 20px)); }
+  .map-bottom:has(+ .route-card) { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { *,*::before,*::after { scroll-behavior: auto !important; transition-duration: 0s !important; } }
+
+/* Radar timeline and location/route controls, mobile-first touch targets. */
+.radar-panel { background: #f0f7f9; border: 1px solid #cfe3e9; padding: 13px 14px; border-radius: 14px; margin-top: 14px; }
+.radar-header, .radar-title, .radar-play-row, .radar-opacity { display: flex; align-items: center; gap: 9px; }
+.radar-header { justify-content: space-between; }
+.radar-title { font-weight: 800; font-size: 13px; color: #164b67; }
+.radar-subtitle { font-size: 11px; margin: 6px 0 13px; color: #466b7d; }
+.icon-inline { display: grid; place-items: center; width: 42px; height: 42px; border: 1px solid #c9dde3; border-radius: 10px; background: #fff; color: #235d76; }
+.radar-play-row { align-items: end; gap: 12px; }
+.radar-play { flex-shrink: 0; min-width: 90px; padding: 0 10px; }
+.radar-slider-label { flex: 1; min-width: 0; font-size: 10px; font-weight: 700; color: #426b7c; }
+.radar-slider-label input, .radar-opacity input { display: block; width: 100%; height: 26px; cursor: pointer; accent-color: #0b8c98; }
+.radar-time-label { display: flex; justify-content: space-between; padding-left: 103px; color: #536f7b; font-size: 10px; margin-top: -3px; }
+.radar-opacity { font-size: 11px; flex-wrap: wrap; margin-top: 11px; color: #3e6777; font-weight: 700; }
+.radar-opacity input { flex: 1 0 100%; margin-top: -5px; }
+.radar-disclaimer { font-size: 10px; color: #4c7180; line-height: 1.5; margin: 10px 0 0; }
+.radar-no-data { color: #9d482c; line-height: 1.6; font-size: 12px; }
+.gps-indicator { position: absolute; top: 95px; right: 19px; z-index: 560; border: 1px solid #b4d9f2; background: #f2f9ff; color: #125187; border-radius: 10px; padding: 8px 10px; font-size: 11px; font-weight: 700; box-shadow: 0 4px 14px #19463525; max-width: calc(100% - 38px); pointer-events: none; }
+.gps-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #1674c4; margin-right: 5px; }
+.map-error { position: absolute; top: 140px; right: 19px; left: 19px; z-index: 720; padding: 10px 12px; display: flex; align-items: center; gap: 12px; justify-content: space-between; max-width: 440px; margin-left: auto; background: white; border-radius: 11px; border: 1px solid #e2a89f; box-shadow: 0 7px 24px #0002; color: #a22e28; font-size: 12px; line-height: 1.5; }
+.map-error button { display: grid; place-items: center; min-width: 38px; min-height: 38px; }
+.leaflet-control-zoom { border: 1px solid #cbded5 !important; box-shadow: 0 4px 15px #274f3c23 !important; }
+.leaflet-control-zoom a { width: 39px !important; height: 39px !important; line-height: 39px !important; }
+@media (max-width: 760px) {
+  .radar-panel { margin-top: 12px; }
+  .gps-indicator { top: 82px; right: 10px; font-size: 10px; }
+  .map-error { top: 124px; right: 10px; left: 10px; }
+  .leaflet-bottom.leaflet-right { bottom: 96px; }
+  .map-space:has(.route-card) .leaflet-bottom.leaflet-right { bottom: 0; }
+}
+
+.map-attribution { position: absolute; z-index: 870; bottom: 0; left: 0; background: rgba(255,255,255,.96); padding: 3px 8px; font-size: 10px; color: #305a54; border-radius: 0 8px 0 0; }
+.map-attribution a { text-decoration: underline; }
+
+.map-flood-unavailable { display: block; color: #a14f2b; font-size: 10px; font-weight: 700; margin-top: 4px; }
+
+/* CityPass camera observations */
+.camera-sidebar { margin-top: 14px; padding-top: 4px; }
+.camera-nearby-list { display: grid; gap: 7px; }
+.camera-nearby-item { width: 100%; min-height: 44px; display: flex; align-items: center; gap: 9px; padding: 10px; background: #fff; border: 1px solid #d5e6e0; border-radius: 10px; color: #235449; text-align: left; }
+.camera-nearby-item:hover { background: #ecf9f3; border-color: #77b9ac; }
+.camera-nearby-item span:nth-child(2) { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-weight: 700; }
+.camera-kind { font-size: 10px; background: #f0f2fa; color: #424c78; border-radius: 6px; padding: 4px 7px; }
+.camera-catalog-note { color: #546f67; font-size: 11px; line-height: 1.55; margin-top: 9px; }
+.camera-image-wrap { width: 100%; aspect-ratio: 16/9; border-radius: 12px; overflow: hidden; background: #0d2522; display: grid; place-items: center; }
+.camera-image-wrap img { width: 100%; height: 100%; object-fit: contain; }
+.camera-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.camera-source { display: inline-block; margin-top: 12px; color: #086d65; text-decoration: underline; font-size: 12px; }
+
+/* CityPass v0.5: TomTom Traffic Flow, sampled road-level observations. */
+.layer-icon.traffic { color: #b54e2d; background: #fff0e7; }
+.traffic-areas-panel { background: #fff9f3; border: 1px solid #f2d9c0; border-radius: 14px; padding: 13px; margin-top: 12px; }
+.traffic-areas-panel .section-title { color: #70462b; }
+.traffic-hint { font-size: 11px; line-height: 1.6; color: #85694c; margin: 8px 0; }
+.traffic-area-list { display: grid; gap: 6px; max-height: 258px; overflow-y: auto; overscroll-behavior: contain; }
+.traffic-area-item { display: flex; align-items: center; gap: 8px; text-align: left; width: 100%; border: 1px solid #eedccc; border-radius: 9px; background: white; padding: 10px 8px; min-height: 52px; }
+.traffic-area-item.active, .traffic-area-item:hover { border-color: #cf805d; background: #fff3e9; }
+.traffic-area-item span:last-child { display: grid; gap: 5px; min-width: 0; }
+.traffic-area-item strong { color: #5c4337; font-size: 11px; }
+.traffic-area-item small { color: #846a56; font-size: 10px; }
+.traffic-spot { display: block; width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; border: 2px solid white; outline: 1px solid #ddd; }
+.traffic-spot.clear { background: #1aa76c; } .traffic-spot.slow { background: #dcb338; }
+.traffic-spot.jam { background: #e76931; } .traffic-spot.heavy, .traffic-spot.closed { background: #b72c35; }
+.traffic-map-popup { min-width: 190px; font-size: 12px; line-height: 1.5; }
+.traffic-map-popup p { margin: 6px 0; } .traffic-map-popup small { color: #59726b; }
+.traffic-route-warning { background: #fff7e6; border: 1px solid #edd2a4; padding: 9px; border-radius: 8px; color: #7b5013; font-size: 11px; margin-top: 9px; line-height: 1.55; }
+/* CityPass v0.4: sampled weather conditions, distinct from observed radar. */
+.layer-icon.weather { color: #c2831f; background: #fff5db; }
+.weather-areas-panel { background: #f6fafc; border: 1px solid #d1e6ed; border-radius: 14px; padding: 13px; margin-top: 13px; }
+.weather-areas-header { display: flex; align-items: center; justify-content: space-between; gap: 9px; }
+.weather-areas-header strong { color: #17495a; font-size: 13px; display: block; }
+.weather-areas-header span { font-size: 10px; color: #547384; display: block; margin-top: 4px; }
+.weather-areas-message, .weather-areas-error { font-size: 12px; line-height: 1.6; margin: 10px 0; }
+.weather-areas-error { color: #a8332e; }
+.weather-areas-error button { text-decoration: underline; font-weight: 800; }
+.weather-counts { display: flex; flex-wrap: wrap; gap: 6px; margin: 13px 0 10px; }
+.weather-counts span { background: #fff; border: 1px solid #e0eaec; color: #315864; border-radius: 8px; padding: 7px 8px; font-size: 11px; display: inline-flex; align-items: center; gap: 5px; }
+.weather-counts span:first-child svg { color: #256eaf; }
+.weather-counts span:last-child svg { color: #c58b13; }
+.weather-areas-list { max-height: 298px; overflow-y: auto; display: grid; gap: 6px; padding-right: 2px; overscroll-behavior: contain; }
+.weather-area-row { display: flex; align-items: center; gap: 9px; padding: 9px 8px; min-height: 53px; border: 1px solid #dbe8ec; background: #fff; border-radius: 10px; text-align: left; width: 100%; }
+.weather-area-row:hover, .weather-area-row.active { border-color: #38a89a; background: #eaf8f4; }
+.weather-area-icon { width: 33px; height: 33px; border-radius: 9px; flex-shrink: 0; display: grid; place-items: center; }
+.weather-area-icon.rain { background: #e5f3ff; color: #226daa; }
+.weather-area-icon.cloud { background: #edf2f5; color: #607b8c; }
+.weather-area-icon.clear { background: #fff4d8; color: #ab720e; }
+.weather-area-name { display: grid; gap: 5px; flex: 1; min-width: 0; }
+.weather-area-name b { font-size: 11px; color: #1d4647; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.weather-area-name small { color: #537684; font-size: 10px; }
+.weather-area-temp { color: #254c57; font-weight: 800; font-size: 14px; }
+.weather-areas-foot, .weather-areas-disclaimer { color: #557787; font-size: 10px; line-height: 1.55; margin: 10px 0 0; }
+.weather-areas-disclaimer { border-top: 1px solid #d9e8ec; padding-top: 9px; }
+.weather-pin-host { background: transparent; border: none; }
+.weather-map-pin { min-width: 98px; width: max-content; max-width: 122px; height: 33px; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 0 11px; white-space: nowrap; border-radius: 18px; border: 2px solid white; box-shadow: 0 4px 11px #10293c44; font-weight: 800; font-size: 11px; color: white; }
+.weather-map-pin.rain { background: #1c639f; }
+.weather-map-pin.cloud { background: #5c7388; }
+.weather-map-pin.clear { background: #ad7111; }
+.weather-map-pin.active { outline: 3px solid #1a8e80; outline-offset: 2px; }
+.weather-map-dot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 8px; background: #fff; opacity: .95; }
+.weather-map-popup { min-width: 190px; line-height: 1.5; color: #264745; }
+.weather-map-popup p { margin: 6px 0; font-size: 12px; }
+.weather-map-popup small { font-size: 10px; color: #5e7a74; }
+@media (max-width: 760px) { .sidebar .layer-list { grid-template-columns: repeat(2, minmax(0,1fr)); } .weather-map-pin { height: 29px; font-size: 10px; min-width: 79px; padding: 0 7px; } .map-info-chip { max-width: min(68%, 340px); } }
+
+
+/* CityPass v0.5.1 Google Maps handoff: only for the selected CityPass route. */
+.citypass-maps-handoff { margin-top: 14px; border: 1px solid #b3dcd0; background: #f1faf6; border-radius: 14px; padding: 12px; display: grid; gap: 11px; }
+.citypass-maps-heading { display: flex; align-items: center; gap: 8px; color: #075f51; font-size: 13px; }
+.citypass-maps-field { display: grid; gap: 5px; color: #234b42; font-size: 12px; font-weight: 700; }
+.citypass-maps-field select { width: 100%; min-height: 44px; border: 1px solid #a5cfc2; padding: 10px; border-radius: 9px; background: white; color: #14392f; font: inherit; }
+.citypass-maps-toggle { display: flex; align-items: flex-start; gap: 9px; font-size: 12px; color: #285749; line-height: 1.5; cursor: pointer; }
+.citypass-maps-toggle input { width: 17px; height: 17px; margin-top: 2px; accent-color: #0b7968; flex-shrink: 0; }
+.citypass-maps-button { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 48px; text-decoration: none; font-size: 13px; text-align: center; }
+.citypass-maps-disclaimer { display: flex; gap: 7px; margin: 0; color: #4b675f; font-size: 11px; line-height: 1.6; }
+.citypass-maps-disclaimer svg { flex-shrink: 0; margin-top: 1px; }
+.citypass-maps-field select:focus-visible, .citypass-maps-button:focus-visible, .citypass-maps-toggle input:focus-visible { outline: 3px solid #3f9f8d; outline-offset: 2px; }
+
+================
+File: src/app/layout.tsx
+================
+import type { Metadata } from "next";
+import { Be_Vietnam_Pro } from "next/font/google";
+import "leaflet/dist/leaflet.css";
+import "./globals.css";
+
+const beVietnam = Be_Vietnam_Pro({ subsets: ["vietnamese", "latin"], weight: ["400", "500", "600", "700", "800"], display: "swap" });
+export const metadata: Metadata = {
+  title: "CityPass — Bản đồ mưa và cảnh báo ngập",
+  description: "Theo dõi lớp radar mưa, tín hiệu ngập có nguồn gốc và so sánh tuyến đường ít điểm rủi ro được báo cáo hơn.",
+  openGraph: { title: "CityPass — Bản đồ mưa và cảnh báo ngập", description: "Không coi thiếu báo cáo là an toàn.", type: "website" },
+  robots: { index: false, follow: false }
+};
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  return <html lang="vi"><body className={beVietnam.className}>{children}</body></html>;
+}
+
+================
+File: src/app/loading.tsx
+================
+export default function Loading() { return <main className="loading-root">Đang mở bản đồ CityPass…</main>; }
+
+================
+File: src/app/not-found.tsx
+================
+import Link from "next/link";
+export default function NotFound() { return <main className="loading-root"><p>Không tìm thấy trang.</p><Link href="/">Về bản đồ</Link></main>; }
+
+================
+File: src/app/page.tsx
+================
+import Dashboard from "@/components/dashboard";
+export default function Page() { return <Dashboard />; }
+
+================
+File: src/app/robots.ts
+================
+import type { MetadataRoute } from "next";
+export default function robots(): MetadataRoute.Robots { return { rules: { userAgent: "*", disallow: "/" } }; }
+
+================
+File: src/app/sitemap.ts
+================
+import type { MetadataRoute } from "next";
+export default function sitemap(): MetadataRoute.Sitemap { return [{ url: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/` }]; }
+
+================
+File: src/components/camera-player.tsx
+================
+"use client";
+import { useEffect, useRef, useState } from "react";
+export default function CameraPlayer({ url }: { url: string }) {
+  const ref = useRef<HTMLVideoElement>(null);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    const video = ref.current;
+    if (!video) return;
+    let cancelled = false;
+    let destroy: (() => void) | undefined;
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol !== "https:" || !parsed.pathname.endsWith(".m3u8")) {
+        setError("Nguồn camera cần dùng HTTPS và đuôi .m3u8."); return;
+      }
+    } catch { setError("URL camera không hợp lệ."); return; }
+    if (video.canPlayType("application/vnd.apple.mpegurl")) {
+      video.src = url;
+    } else {
+      void import("hls.js").then(({ default: Hls }) => {
+        if (cancelled) return;
+        if (!Hls.isSupported()) { setError("Trình duyệt không hỗ trợ phát HLS."); return; }
+        const player = new Hls({ enableWorker: true, lowLatencyMode: true });
+        destroy = () => player.destroy();
+        player.loadSource(url); player.attachMedia(video);
+        player.on(Hls.Events.ERROR, (_event, data) => { if (data.fatal && !cancelled) setError("Luồng video bị gián đoạn hoặc nhà cung cấp chưa bật CORS."); });
+      }).catch(() => { if (!cancelled) setError("Không nạp được trình phát HLS."); });
+    }
+    return () => { cancelled = true; video.pause(); destroy?.(); video.removeAttribute("src"); video.load(); };
+  }, [url]);
+  return <div><video ref={ref} controls playsInline autoPlay muted style={{ width: "100%", aspectRatio: "16/9", borderRadius: 12, background: "#0d2522" }} /><p className="subtle">Video chỉ phát khi mở cửa sổ này và tự ngắt khi đóng.</p>{error && <p role="alert" className="notice-error">{error}</p>}</div>;
+}
+
+================
+File: src/components/camera-snapshot.tsx
+================
+"use client";
+import { useEffect, useState } from "react";
+import Image from "next/image";
+import type { Camera } from "@/lib/types";
+
+/** Only renders the official image while the popup is open; no proxy, scraping, or image storage. */
+export default function CameraSnapshot({ camera }: { camera: Camera }) {
+  const [tick, setTick] = useState(0);
+  const [error, setError] = useState(false);
+  useEffect(() => {
+    const interval = window.setInterval(() => { setError(false); setTick(t => t + 1); }, 30_000);
+    return () => window.clearInterval(interval);
+  }, [camera.id]);
+  if (!camera.snapshot_url) return null;
+  const sep = camera.snapshot_url.includes("?") ? "&" : "?";
+  const src = `${camera.snapshot_url}${sep}refresh=${tick}`;
+  return <div className="camera-snapshot">
+    {!error ? <div className="camera-image-wrap"><Image unoptimized width={800} height={450} key={src} src={src} alt={`Ảnh camera ${camera.title}`} onError={() => setError(true)} referrerPolicy="no-referrer" /></div>
+      : <p className="notice-error" role="alert">Máy chủ camera chưa trả ảnh hoặc không cho phép xem từ website này. Mở nguồn gốc để kiểm tra.</p>}
+    <div className="camera-actions"><button className="btn" type="button" onClick={() => { setError(false); setTick(t => t + 1); }}>Làm mới ảnh</button>
+      <a className="btn" href={camera.snapshot_url} target="_blank" rel="noopener noreferrer">Mở ảnh gốc</a>
+    </div>
+    <p className="subtle">Ảnh tự yêu cầu làm mới mỗi 30 giây khi đang mở. Không phải video; thời điểm chụp thực tế không được nguồn cung cấp.</p>
+    {camera.source_url && <a href={camera.source_url} target="_blank" rel="noopener noreferrer" className="camera-source">Nguồn danh sách: rin2401.github.io/map</a>}
+  </div>;
+}
+
+================
+File: src/components/dashboard.tsx
+================
+"use client";
+import dynamic from "next/dynamic";
+import Link from "next/link";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { clampRadarIndex, type RadarFrame } from "@/lib/radar";
+import RadarTimeline from "./radar-timeline";
+import WeatherAreasPanel from "./weather-areas-panel";
+import TrafficPanel from "./traffic-panel";
+import type { TrafficAreaResponse, TrafficPoint } from "@/lib/traffic";
+import type { WeatherArea, AreaWeatherResponse } from "@/lib/weather-areas";
+import { AlertTriangle, ArrowLeftRight, Check, ChevronDown, CloudRain, CloudSun, Compass, Crosshair, Info, LocateFixed, MapPin, Navigation, Plus, Route, Search, ShieldAlert, SlidersHorizontal, Video, Waves, X, CarFront } from "lucide-react";
+import { HCMC } from "@/lib/config";
+import type { Camera, Incident, RouteOption } from "@/lib/types";
+import { buildGoogleMapsDirectionsUrl, type GoogleTravelMode } from "@/lib/google-maps";
+import { browserDb } from "@/lib/supabase/client";
+import CameraPlayer from "./camera-player";
+import CameraSnapshot from "./camera-snapshot";
+
+const MapView = dynamic(() => import("./map-view"), { ssr: false, loading: () => <div className="loading-root">Đang tải nền bản đồ…</div> });
+type Point = [number, number];
+type PickMode = "from" | "to" | "report" | null;
+type Dialog = "report" | "login" | "incident" | "camera" | null;
+const places: Array<{ name: string; point: Point }> = [
+  { name: "Quận 1 · Trung tâm", point: [10.7769, 106.7009] },
+  { name: "Bình Thạnh", point: [10.8033, 106.7144] },
+  { name: "Thủ Đức", point: [10.8492, 106.7711] },
+  { name: "Quận 7", point: [10.7353, 106.7216] },
+  { name: "Tân Bình", point: [10.8075, 106.652] }
+];
+function formatTime(date: string | number) {
+  return new Date(date).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Ho_Chi_Minh" });
+}
+function statusLabel(item: Incident) {
+  if (item.is_demo) return "Minh hoạ";
+  return item.status === "VERIFIED" ? "Đã cộng đồng xác minh" : item.status === "ACTIVE" ? "Từ cảm biến" : "Chờ xác minh";
+}
+function distanceLabel(n: number) { return n < 1000 ? `${Math.round(n)} m` : `${(n / 1000).toFixed(1)} km`; }
+
+export default function Dashboard() {
+  const [layers, setLayers] = useState({ radar: true, weather: true, traffic: false, flood: false, cameras: false });
+  const [center, setCenter] = useState<Point>([HCMC.lat, HCMC.lng]);
+  const [focus, setFocus] = useState<Point | null>(null);
+  const [incidents, setIncidents] = useState<Incident[]>([]);
+  const [cameras, setCameras] = useState<Camera[]>([]);
+  const [cameraError, setCameraError] = useState("");
+  const [cameraLoading, setCameraLoading] = useState(false);
+  const [mode, setMode] = useState<"demo" | "live">("demo");
+  const [radarFrames, setRadarFrames] = useState<RadarFrame[]>([]);
+  const [radarIndex, setRadarIndex] = useState(0);
+  const [radarOpacity, setRadarOpacity] = useState(0.7);
+  const [radarPlaying, setRadarPlaying] = useState(false);
+  const [radarError, setRadarError] = useState("");
+  const radar = radarFrames[clampRadarIndex(radarIndex, radarFrames.length)] ?? null;
+  const [gps, setGps] = useState<{ point: Point; accuracy: number } | null>(null);
+  const [locating, setLocating] = useState(false);
+  const [gpsError, setGpsError] = useState("");
+  const routingSequence = useRef(0);
+  const [weatherAreas, setWeatherAreas] = useState<WeatherArea[]>([]);
+  const [weatherAreasLoading, setWeatherAreasLoading] = useState(true);
+  const [weatherAreasError, setWeatherAreasError] = useState("");
+  const [weatherAreasUpdatedAt, setWeatherAreasUpdatedAt] = useState<string | null>(null);
+  const [selectedWeatherId, setSelectedWeatherId] = useState<string | null>(null);
+  const [trafficData, setTrafficData] = useState<TrafficAreaResponse | null>(null);
+  const [trafficError, setTrafficError] = useState("");
+  const [trafficLoading, setTrafficLoading] = useState(false);
+  const [selectedTrafficId, setSelectedTrafficId] = useState<string | null>(null);
+  const [trafficReload, setTrafficReload] = useState(0);
+  const [routeMeta, setRouteMeta] = useState<{ traffic_aware: boolean; warning: string } | null>(null);
+  const [weather, setWeather] = useState<{ precipitation: number | null; temperature: number | null; time: string | null } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [dataError, setDataError] = useState("");
+  const [routes, setRoutes] = useState<RouteOption[]>([]);
+  const [selectedRoute, setSelectedRoute] = useState<string | null>(null);
+  const [googleTravelMode, setGoogleTravelMode] = useState<GoogleTravelMode>("driving");
+  const [followCityPassRoute, setFollowCityPassRoute] = useState(true);
+  const [routing, setRouting] = useState(false);
+  const [routeError, setRouteError] = useState("");
+  const [from, setFrom] = useState<Point | null>(null);
+  const [to, setTo] = useState<Point | null>(null);
+  const [pickMode, setPickMode] = useState<PickMode>(null);
+  const [showRoute, setShowRoute] = useState(false);
+  const [dialog, setDialog] = useState<Dialog>(null);
+  const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
+  const [selectedCamera, setSelectedCamera] = useState<Camera | null>(null);
+  const [reportPoint, setReportPoint] = useState<Point | null>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [userId, setUserId] = useState<string | null>(null);
+  const db = useRef(browserDb());
+
+  const refresh = useCallback(async (location: Point, signal?: AbortSignal) => {
+    const q = new URLSearchParams({ lat: String(location[0]), lng: String(location[1]), radius_km: "18" });
+    try {
+      const result = await fetch(`/api/v1/incidents/nearby?${q}`, { signal, cache: "no-store" });
+      if (!result.ok) throw new Error("Không thể tải cảnh báo ngập");
+      const payload = await result.json();
+      setIncidents(payload.incidents ?? []);
+      setMode(payload.mode === "live" ? "live" : "demo");
+      setDataError("");
+    } catch (e) { if (!signal?.aborted) setDataError(e instanceof Error ? e.message : "Lỗi kết nối"); }
+    finally { if (!signal?.aborted) setLoading(false); }
+  }, []);
+  useEffect(() => {
+    const abort = new AbortController();
+    void refresh(center, abort.signal);
+    const interval = setInterval(() => void refresh(center, abort.signal), 30_000);
+    return () => { abort.abort(); clearInterval(interval); };
+  }, [center, refresh, refreshKey]);
+  useEffect(() => {
+    const controller = new AbortController();
+    async function getWeather() {
+      const [radarResult, weatherResult] = await Promise.allSettled([
+        fetch("/api/v1/weather/radar", { signal: controller.signal }).then(async r => { if (!r.ok) throw Error(); return r.json(); }),
+        fetch(`/api/v1/weather/current?lat=${center[0]}&lng=${center[1]}`, { signal: controller.signal }).then(async r => { if (!r.ok) throw Error(); return r.json(); })
+      ]);
+      if (controller.signal.aborted) return;
+      if (radarResult.status === "fulfilled") {
+        const frames: RadarFrame[] = radarResult.value.frames ?? [];
+        setRadarFrames(frames);
+        setRadarIndex(Math.max(0, frames.length - 1));
+        setRadarError(radarResult.value.error ?? "");
+        if (!frames.length) setRadarPlaying(false);
+      } else {
+        setRadarFrames([]); setRadarPlaying(false);
+        setRadarError("Không kết nối được nguồn radar. Hãy thử tải lại.");
+      }
+      setWeather(weatherResult.status === "fulfilled" ? weatherResult.value.weather ?? null : null);
+    }
+    void getWeather();
+    const interval = setInterval(() => void getWeather(), 300_000);
+    return () => { controller.abort(); clearInterval(interval); };
+  }, [center, refreshKey]);
+  useEffect(() => {
+    if (!layers.weather) return;
+    const controller = new AbortController();
+    async function updateAreas() {
+      setWeatherAreasLoading(true);
+      try {
+        const response = await fetch("/api/v1/weather/areas", { signal: controller.signal });
+        const body: AreaWeatherResponse & { error?: string } = await response.json();
+        if (!response.ok || !Array.isArray(body.areas)) throw new Error(body.error ?? "Dữ liệu khu vực chưa sẵn sàng");
+        if (controller.signal.aborted) return;
+        setWeatherAreas(body.areas);
+        setWeatherAreasUpdatedAt(body.updated_at);
+        setWeatherAreasError("");
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        setWeatherAreas([]);
+        setWeatherAreasUpdatedAt(null);
+        setWeatherAreasError(error instanceof Error ? error.message : "Không tải được thời tiết các khu vực");
+      } finally { if (!controller.signal.aborted) setWeatherAreasLoading(false); }
+    }
+    void updateAreas();
+    const interval = setInterval(() => void updateAreas(), 300_000);
+    return () => { controller.abort(); clearInterval(interval); };
+  }, [layers.weather, refreshKey]);
+  useEffect(() => {
+    if (!layers.traffic) return;
+    const controller = new AbortController();
+    async function loadTraffic() {
+      setTrafficLoading(true);
+      try {
+        const response = await fetch("/api/v1/traffic/areas", { signal: controller.signal, cache: "no-store" });
+        const data = await response.json() as TrafficAreaResponse;
+        if (!response.ok || !Array.isArray(data.points)) throw Error(data.error ?? "Không lấy được dữ liệu giao thông");
+        if (controller.signal.aborted) return;
+        setTrafficData(data); setTrafficError("");
+      } catch (error) {
+        if (!controller.signal.aborted) setTrafficError(error instanceof Error ? error.message : "Lỗi giao thông");
+      } finally { if (!controller.signal.aborted) setTrafficLoading(false); }
+    }
+    void loadTraffic();
+    const interval = setInterval(() => void loadTraffic(), 90_000);
+    return () => { controller.abort(); clearInterval(interval); };
+  }, [layers.traffic, trafficReload]);
+  useEffect(() => {
+    if (!radarPlaying || radarFrames.length < 2 || !layers.radar) return;
+    const interval = setInterval(() => setRadarIndex(index => (index + 1) % radarFrames.length), 1300);
+    return () => clearInterval(interval);
+  }, [radarPlaying, radarFrames.length, layers.radar]);
+  useEffect(() => {
+    if (!layers.cameras) return;
+    const controller = new AbortController();
+    async function fetchCameras() {
+      setCameraLoading(true);
+      try {
+        const response = await fetch(`/api/v1/cameras?lat=${center[0]}&lng=${center[1]}&radius_km=15`, { signal: controller.signal });
+        if (!response.ok) throw new Error("Máy chủ camera không phản hồi.");
+        const data = await response.json();
+        if (controller.signal.aborted) return;
+        setCameras(Array.isArray(data.cameras) ? data.cameras : []);
+        setCameraError(data.warning ?? "");
+      } catch (error) {
+        if (!controller.signal.aborted) setCameraError(error instanceof Error ? error.message : "Không tải được camera");
+      } finally {
+        if (!controller.signal.aborted) setCameraLoading(false);
+      }
+    }
+    void fetchCameras();
+    return () => controller.abort();
+  }, [center, layers.cameras, refreshKey]);
+  useEffect(() => {
+    if (!db.current) return;
+    const supabase = db.current;
+    void supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null));
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => setUserId(session?.user.id ?? null));
+    return () => listener.subscription.unsubscribe();
+  }, []);
+  // Realtime lọc theo ô lưới nhỏ thay vì đăng ký sự kiện toàn thành phố.
+  useEffect(() => {
+    const supabase = db.current;
+    if (!supabase || mode !== "live") return;
+    const latCell = Math.floor(center[0] / .02), lngCell = Math.floor(center[1] / .02);
+    const channels: ReturnType<typeof supabase.channel>[] = [];
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+      const cell = `${latCell + dy}:${lngCell + dx}`;
+      const ch = supabase.channel(`incident-${cell}`).on("postgres_changes", {
+        event: "*", schema: "public", table: "incident_events", filter: `region_key=eq.${cell}`
+      }, () => setRefreshKey(k => k + 1)).subscribe();
+      channels.push(ch);
+    }
+    return () => { channels.forEach(ch => { void supabase.removeChannel(ch); }); };
+  }, [center, mode]);
+  const onMove = useCallback((lat: number, lng: number) => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => setCenter([lat, lng]), 300);
+  }, []);
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
+  function clearRouteResults() {
+    routingSequence.current += 1;
+    setRoutes([]); setSelectedRoute(null); setRouteError(""); setRouteMeta(null); setRouting(false);
+  }
+  const onPick = useCallback((point: Point) => {
+    if (pickMode === "from") setFrom(point);
+    if (pickMode === "to") setTo(point);
+    if (pickMode === "report") { setReportPoint(point); setDialog("report"); }
+    if (pickMode === "from" || pickMode === "to") {
+      routingSequence.current += 1;
+      setRoutes([]); setSelectedRoute(null); setRouteError(""); setRouteMeta(null); setRouting(false);
+    }
+    setPickMode(null);
+  }, [pickMode]);
+  function locate(target: "from" | "view" | "report") {
+    setGpsError("");
+    if (!window.isSecureContext && window.location.hostname !== "localhost") {
+      setGpsError("GPS chỉ hoạt động qua HTTPS hoặc localhost. Hãy mở website bằng kết nối bảo mật."); return;
+    }
+    if (!navigator.geolocation) { setGpsError("Trình duyệt không hỗ trợ GPS. Hãy chọn điểm trên bản đồ."); return; }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(p => {
+      const next: Point = [p.coords.latitude, p.coords.longitude];
+      setGps({ point: next, accuracy: p.coords.accuracy });
+      if (target === "from") { setFrom(next); clearRouteResults(); }
+      if (target === "report") { setReportPoint(next); setDialog("report"); }
+      setFocus(next); setCenter(next); setLocating(false);
+    }, error => {
+      setLocating(false);
+      const messages: Record<number, string> = {
+        1: "Quyền GPS đang bị từ chối. Hãy cấp quyền vị trí trong trình duyệt rồi thử lại.",
+        2: "Không xác định được GPS. Hãy bật dịch vụ vị trí hoặc chọn điểm trên bản đồ.",
+        3: "GPS phản hồi quá chậm. Hãy thử lại hoặc chọn điểm trên bản đồ."
+      };
+      setGpsError(messages[error.code] ?? "Không đọc được GPS. Hãy chọn điểm trực tiếp trên bản đồ.");
+    }, { enableHighAccuracy: true, maximumAge: 15000, timeout: 12000 });
+  }
+  async function findRoutes() {
+    if (!from || !to) return;
+    const requestId = ++routingSequence.current;
+    setRouting(true); setRouteError(""); setRoutes([]); setSelectedRoute(null);
+    const params = new URLSearchParams({ from_lat: String(from[0]), from_lng: String(from[1]), to_lat: String(to[0]), to_lng: String(to[1]) });
+    try {
+      const response = await fetch(`/api/v1/routes?${params}`, { cache: "no-store" });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error ?? "Không lấy được các tuyến đường");
+      if (routingSequence.current !== requestId) return;
+      setRoutes(payload.routes ?? []); setSelectedRoute(payload.routes?.[0]?.id ?? null);
+      setRouteMeta({ traffic_aware: payload.traffic_aware === true, warning: String(payload.warning ?? "Không có dữ liệu kẹt xe trực tiếp") });
+      if (!payload.routes?.length) setRouteError("Không có tuyến đường phù hợp ở khu vực này.");
+    } catch (e) {
+      if (routingSequence.current === requestId) setRouteError(e instanceof Error ? e.message : "Lỗi định tuyến");
+    } finally { if (routingSequence.current === requestId) setRouting(false); }
+  }
+  const activeRoute = routes.find(item => item.id === selectedRoute) ?? null;
+  const googleMapsUrl = from && to && activeRoute
+    ? buildGoogleMapsDirectionsUrl({ from, to, geometry: activeRoute.geometry, mode: googleTravelMode, includeWaypoints: followCityPassRoute })
+    : null;
+  const visible = layers.flood ? incidents : [];
+  const chosenWeather = weatherAreas.find(area => area.id === selectedWeatherId)
+    ?? [...weatherAreas].sort((a, b) => ((a.lat - center[0]) ** 2 + (a.lng - center[1]) ** 2) - ((b.lat - center[0]) ** 2 + (b.lng - center[1]) ** 2))[0];
+  const storm = weather?.precipitation != null ? (weather.precipitation > 0 ? "Có tín hiệu mưa" : "Chưa thấy mưa trong mô hình") : "Đang lấy dữ liệu mưa";
+  const weatherStatus = layers.weather && chosenWeather ? `${chosenWeather.name}: ${chosenWeather.conditionLabel}` : storm;
+  return <div className="shell">
+    <header className="topbar">
+      <Link className="brand" href="/"><span className="brand-mark"><Waves size={23} strokeWidth={2.5} /></span><span><span className="brand-name">CityPass<span style={{ color: "#1b9b8b" }}>.</span></span><span className="brand-sub">Biết mưa. Hiểu ngập. Chọn đường.</span></span></Link>
+      <div className="topbar-center"><span className="top-pill"><MapPin size={14} /> TP. Hồ Chí Minh <ChevronDown size={13} /></span><span className="top-pill"><span className="live-dot" style={{ background: radar ? "#159568" : "#9aaca5" }} /> Radar lịch sử · {radar ? `ảnh ${formatTime(radar.time * 1000)}` : "chưa có dữ liệu"}</span></div>
+      <div className="top-actions"><button className="btn" onClick={() => setShowRoute(true)}><Route size={17} /><span>Tìm đường</span></button><button className="btn btn-primary" onClick={() => { setReportPoint(null); setDialog("report"); }}><Plus size={18} /><span>Báo điểm ngập</span></button><button className="btn btn-ghost" onClick={() => setDialog("login")} aria-label="Tài khoản"><Compass size={19} /></button></div>
+    </header>
+    <main className="app-main">
+      <aside className="sidebar"><div className="sidebar-scroll">
+        <div className="eyebrow">BẢN ĐỒ THEO DÕI</div><h1 className="heading">Đường bạn đi,<br />có đang ngập?</h1><p className="subtle">Quan sát mưa trên radar và những điểm ngập được ghi nhận quanh khu vực đang xem.</p>
+        <button className="search-display" onClick={() => { setFocus([HCMC.lat, HCMC.lng]); setCenter([HCMC.lat, HCMC.lng]); }}><Search size={17} color="#668a7e" /><span>TP. Hồ Chí Minh · Toàn khu vực</span><MapPin size={15} style={{ marginLeft: "auto" }} /></button>
+        <div className="section-row"><span className="section-title">Lớp hiển thị</span><span className="section-extra"><SlidersHorizontal size={13} style={{ display: "inline", verticalAlign: "middle" }} /> Tuỳ chọn</span></div>
+        <div className="layer-list">
+          {([ ["traffic", CarFront, "Giao thông / kẹt xe", "traffic"], ["weather", CloudSun, "Thời tiết khu vực", "weather"], ["radar", CloudRain, "Radar mưa", "rain"], ["flood", Waves, mode === "demo" ? "Điểm ngập (mô phỏng)" : "Điểm ngập", "flood"], ["cameras", Video, "Camera", "camera"] ] as const).map(([key, Icon, label, css]) => <div className="layer-toggle" key={key}><div className="layer-left"><span className={`layer-icon ${css}`}><Icon size={18} /></span><span>{label}</span></div><button className="switch" role="switch" aria-label={`Bật tắt ${label}`} aria-checked={layers[key]} onClick={() => setLayers(s => ({ ...s, [key]: !s[key] }))} /></div>)}
+        </div>
+        {layers.traffic && <TrafficPanel data={trafficData} loading={trafficLoading} error={trafficError} selectedId={selectedTrafficId} onReload={() => setTrafficReload(k => k + 1)} onSelect={(point: TrafficPoint) => { setSelectedTrafficId(point.id); setFocus([point.lat, point.lng]); setCenter([point.lat, point.lng]); }} />}
+        {layers.weather && <WeatherAreasPanel areas={weatherAreas} selectedId={selectedWeatherId} updatedAt={weatherAreasUpdatedAt} loading={weatherAreasLoading} error={weatherAreasError} onReload={() => setRefreshKey(k => k + 1)} onSelect={area => { setSelectedWeatherId(area.id); setFocus([area.lat, area.lng]); setCenter([area.lat, area.lng]); }} />}
+        {layers.radar && <RadarTimeline frames={radarFrames} index={radarIndex} opacity={radarOpacity} playing={radarPlaying} error={radarError} onIndex={setRadarIndex} onOpacity={setRadarOpacity} onPlaying={setRadarPlaying} onReload={() => setRefreshKey(k => k + 1)} />}
+        {layers.cameras && <section className="camera-sidebar" aria-label="Danh sách camera giao thông">
+          <div className="section-row"><span className="section-title">Camera khu vực</span><span className="section-extra">{cameraLoading ? "Đang tải…" : `${cameras.length} điểm`}</span></div>
+          {cameraError && <p className="notice-error" role="status">{cameraError}</p>}
+          {!cameraLoading && !cameras.length && <p className="empty">Chưa nhận được danh sách camera tại khu vực này. Bạn có thể thử làm mới hoặc di chuyển bản đồ.</p>}
+          <div className="camera-nearby-list">{cameras.slice(0, 5).map(camera => <button type="button" className="camera-nearby-item" key={camera.id} onClick={() => { setSelectedCamera(camera); setFocus([camera.lat, camera.lng]); setDialog("camera"); }}><Video size={15} /><span>{camera.title}</span><span className="camera-kind">{camera.snapshot_url ? "Ảnh" : "Video"}</span></button>)}</div>
+          <p className="camera-catalog-note">Nguồn bên ngoài có thể trễ hoặc ngừng trả ảnh. Không sử dụng ảnh để kết luận độ sâu ngập.</p>
+        </section>}
+        <div className="warning-box"><AlertTriangle size={17} style={{ flexShrink: 0, marginTop: 1 }} /><span>{mode === "demo" ? <><strong>CHẾ ĐỘ MINH HỌA:</strong> Các điểm ngập là dữ liệu giả lập, không phản ánh tình trạng thật. Radar (nếu có) là dữ liệu riêng từ RainViewer.</> : <><strong>Lưu ý:</strong> Không có báo cáo không có nghĩa là đường an toàn. Kiểm tra thực tế trước khi đi.</>}</span></div>
+        <div className="section-row"><span className="section-title">Cảnh báo quanh bản đồ</span><span className="section-extra">{!layers.flood ? "Lớp đang tắt" : loading ? "Đang tải..." : `${visible.length} điểm`}</span></div>
+        {dataError && <p className="notice-error" role="alert">{dataError} <button onClick={() => setRefreshKey(k => k + 1)}><strong>Thử lại</strong></button></p>}
+        {!layers.flood && <div className="empty">Lớp điểm ngập đang tắt. Bạn có thể bật để xem điểm minh họa hoặc dữ liệu thật khi kết nối nguồn.</div>}
+        {layers.flood && !loading && visible.length === 0 && <div className="empty">Không có sự cố trong khu vực này. Điều đó không khẳng định đường không ngập.</div>}
+        {visible.slice(0, 14).map(item => <button className="incident-item" key={item.id} onClick={() => { setSelectedIncident(item); setFocus([item.geometry.coordinates[1], item.geometry.coordinates[0]]); setDialog("incident"); }}><span className={`severity-pin severity-${item.severity}`}>{item.severity}</span><div className="incident-main"><div className="incident-name">{item.title}</div><div className="incident-meta"><span>{item.water_depth_cm == null ? `Mức ${item.severity}` : `${item.water_depth_cm} cm`}</span><span>·</span><span className={`status-pill ${item.status === "VERIFIED" ? "verified" : ""}`}>{statusLabel(item)}</span></div></div></button>)}
+        <div style={{ marginTop: 20, fontSize: 10, color: "#729087", lineHeight: 1.7 }}>Nguồn radar: <a href="https://www.rainviewer.com/" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "underline" }}>RainViewer</a>. Thời tiết khu vực theo ô lưới mô hình, không phải trạm đo. Thời tiết mô hình: <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "underline" }}>Open-Meteo</a>. Nền bản đồ: © OpenStreetMap. Dữ liệu có thể trễ hoặc không bao phủ toàn bộ khu vực.</div>
+      </div></aside>
+      <section className="map-space" aria-label="Bản đồ mưa và sự cố ngập">
+        <MapView weatherAreas={layers.weather ? weatherAreas : []} selectedWeatherId={selectedWeatherId} onSelectWeather={area => { setSelectedWeatherId(area.id); }} trafficEnabled={layers.traffic && trafficData?.configured === true} trafficPoints={layers.traffic ? trafficData?.points ?? [] : []} onSelectTraffic={point => { setSelectedTrafficId(point.id); }} incidents={visible} cameras={layers.cameras ? cameras : []} rain={layers.radar} radar={radar} radarOpacity={radarOpacity} gps={gps} focus={focus} pickMode={pickMode} onPick={onPick} onMove={onMove} onSelectIncident={item => { setSelectedIncident(item); setDialog("incident"); }} onSelectCamera={item => { setSelectedCamera(item); setDialog("camera"); }} routes={routes} selectedRoute={selectedRoute} from={from} to={to} />
+        <div className="map-attribution"><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap</a>{layers.traffic && trafficData?.configured && <span> · Traffic <a href="https://www.tomtom.com/" target="_blank" rel="noopener noreferrer">TomTom</a></span>}{layers.radar && <span> · Radar <a href="https://www.rainviewer.com/" target="_blank" rel="noopener noreferrer">RainViewer</a></span>}</div>
+        <div className="map-overlay-top"><div className="map-info-chip"><CloudSun color="#db9a32" size={24} /><span><strong>{weatherStatus}</strong><br /><span style={{ color: "#71887f" }}>{layers.weather && chosenWeather ? `${Math.round(chosenWeather.temperatureC)}°C · mưa ${chosenWeather.precipitationMm.toFixed(1)} mm / 15 phút · ${chosenWeather.time.replace("T", " ")}` : weather?.precipitation != null ? `Mưa mô hình ${weather.precipitation} mm · ${weather.time ?? ""}` : "Không đồng nghĩa không mưa"}{mode === "demo" && <span className="map-flood-unavailable">Ngập: chưa có dữ liệu thực</span>}</span></span></div><div className="map-tools"><button className="tool-btn" title="Vị trí của tôi" aria-label="Về vị trí của tôi" disabled={locating} onClick={() => locate("view")}><LocateFixed size={19} /></button><button className="tool-btn" title="Làm mới" aria-label="Làm mới cảnh báo" onClick={() => setRefreshKey(k => k + 1)}><Crosshair size={19} /></button></div></div>
+        {gps && <div className="gps-indicator" role="status"><span className="gps-dot" /> GPS ±{Math.round(gps.accuracy)} m · Vị trí gần đúng</div>}
+        {gpsError && <div className="map-error" role="alert">{gpsError}<button onClick={() => setGpsError("")} aria-label="Đóng lỗi GPS"><X size={16} /></button></div>}
+        {pickMode && <div style={{ position: "absolute", zIndex: 700, top: 87, left: 20, right: 20, maxWidth: 410, background: "#113d34", color: "white", padding: 12, borderRadius: 12, boxShadow: "0 4px 20px #113d3444", display: "flex", alignItems: "center", justifyContent: "space-between" }}><span>Chạm vào bản đồ để chọn {pickMode === "from" ? "điểm đi" : pickMode === "to" ? "điểm đến" : "điểm báo cáo"}.</span><button aria-label="Huỷ chọn" onClick={() => setPickMode(null)}><X size={18} /></button></div>}
+        <div className="map-bottom"><div className="legend">{layers.traffic && <><div style={{ fontSize: 11, fontWeight: 800 }}>Giao thông · tốc độ tương đối</div><div className="legend-items"><span><i className="legend-dot" style={{ background: "#1aa76c" }} />Thông thoáng</span><span><i className="legend-dot" style={{ background: "#dcb338" }} />Chậm</span><span><i className="legend-dot" style={{ background: "#e76931" }} />Ùn tắc</span><span><i className="legend-dot" style={{ background: "#b72c35" }} />Nặng</span></div></>}<div style={{ fontSize: 11, fontWeight: 800 }}>{layers.weather ? "Thời tiết theo khu vực · ước tính mô hình" : "Chú thích mức ngập theo độ sâu"}</div>{layers.weather && <div className="legend-items"><span><i className="legend-dot" style={{ background: "#2471ae" }} />Có mưa</span><span><i className="legend-dot" style={{ background: "#c88a17" }} />Nắng / quang</span><span><i className="legend-dot" style={{ background: "#748797" }} />Nhiều mây</span></div>}<div style={{ fontSize: 11, fontWeight: 800, marginTop: layers.weather ? 9 : 0 }}>Chú thích mức ngập theo độ sâu</div><div className="legend-items"><span><i className="legend-dot" style={{ background: "#be9210" }} />1 · 10–&lt;20cm</span><span><i className="legend-dot" style={{ background: "#d36b24" }} />2 · 20–35cm</span><span><i className="legend-dot" style={{ background: "#cc3538" }} />3 · &gt;35cm</span></div></div></div>
+        {showRoute && <div className="route-card"><div className="route-head"><span className="route-title">Tìm đường · xét giao thông nếu có</span><button aria-label="Đóng bảng tìm đường" onClick={() => setShowRoute(false)}><X size={18} /></button></div><p className="subtle" style={{ margin: "5px 0 12px" }}>Chọn hai vị trí trên bản đồ, hệ thống so sánh các tuyến có thể đi.</p>
+          <div style={{ display: "grid", gap: 7 }}><button className={`point-input ${pickMode === "from" ? "selected" : ""}`} onClick={() => { setPickMode("from"); setShowRoute(true); }}><span style={{ color: "#0a8876" }}>●</span>{from ? `Điểm đi: ${from[0].toFixed(4)}, ${from[1].toFixed(4)}` : "Chạm để chọn điểm đi trên bản đồ"}</button><button className={`point-input ${pickMode === "to" ? "selected" : ""}`} onClick={() => setPickMode("to")}><span style={{ color: "#2a5c9a" }}>●</span>{to ? `Điểm đến: ${to[0].toFixed(4)}, ${to[1].toFixed(4)}` : "Chạm để chọn điểm đến trên bản đồ"}</button></div>
+          <div style={{ display: "flex", gap: 8, marginTop: 9 }}><button className="btn" style={{ flex: 1, fontSize: 11 }} onClick={() => locate("from")}><Navigation size={13} /> Vị trí tôi</button><button className="btn" style={{ flex: 1, fontSize: 11 }} onClick={() => { setFrom(to); setTo(from); clearRouteResults(); }}><ArrowLeftRight size={13} /> Đổi chiều</button></div>
+          <label className="field" style={{ marginTop: 9 }}>Chọn nhanh điểm đến<select defaultValue="" onChange={e => { if (!e.target.value) return; const p = places[Number(e.target.value)]; if (p) { setTo(p.point); setFocus(p.point); clearRouteResults(); } }}><option value="">Chọn khu vực...</option>{places.map((p, i) => <option key={p.name} value={i}>{p.name}</option>)}</select></label>
+          <button className="btn btn-primary" style={{ width: "100%", marginTop: 12 }} disabled={!from || !to || routing} onClick={() => void findRoutes()}><Route size={15} />{routing ? "Đang tìm tuyến…" : "Tìm và so sánh tuyến"}</button>
+          {routeError && <p className="notice-error" role="alert">{routeError}</p>}
+          {routeMeta && <p className={routeMeta.traffic_aware ? "notice-success" : "traffic-route-warning"} role="status">{routeMeta.traffic_aware ? "Đã tính ETA có xét giao thông thực tế · " : "Dự phòng · "}{routeMeta.warning}</p>}
+          {routes.length > 0 && <div className="route-list">{routes.map((r, idx) => <button key={r.id} onClick={() => setSelectedRoute(r.id)} className={`route-option ${selectedRoute === r.id ? "current" : ""}`}><span><strong style={{ fontSize: 12 }}>Tuyến {idx + 1} · {distanceLabel(r.distance_m)}</strong><br /><span style={{ fontSize: 10, color: "#648178" }}>{Math.round(r.duration_s / 60)} phút (ước tính ô tô){routeMeta?.traffic_aware && r.traffic_delay_s != null ? ` · Chậm do ùn tắc +${Math.round(r.traffic_delay_s / 60)} phút` : ""} · {mode === "demo" ? "Không có đánh giá ngập thực tế" : `${r.risk_count} điểm cảnh báo gần tuyến`}</span></span>{selectedRoute === r.id && <Check size={16} color="#067b6b" />}</button>)}</div>}
+          {activeRoute && googleMapsUrl && <section className="citypass-maps-handoff" aria-label="Mở tuyến đã chọn trên Google Maps">
+            <div className="citypass-maps-heading"><Navigation size={17} aria-hidden="true" /><strong>Chỉ đường bằng Google Maps · {`Tuyến ${routes.findIndex(item => item.id === selectedRoute) + 1}`}</strong></div>
+            <label className="citypass-maps-field">Phương tiện trên Google Maps
+              <select value={googleTravelMode} onChange={event => setGoogleTravelMode(event.target.value as GoogleTravelMode)}>
+                <option value="driving">Ô tô</option>
+                <option value="two-wheeler">Xe máy (nếu Google hỗ trợ)</option>
+              </select>
+            </label>
+            <label className="citypass-maps-toggle">
+              <input type="checkbox" checked={followCityPassRoute} onChange={event => setFollowCityPassRoute(event.target.checked)} />
+              Gửi tối đa 3 điểm trung gian theo tuyến CityPass
+            </label>
+            <a className="btn btn-primary citypass-maps-button" href={googleMapsUrl} target="_blank" rel="noopener noreferrer" aria-label="Mở Google Maps để chỉ đường theo tuyến đang chọn (mở tab mới)">
+              <Navigation size={17} aria-hidden="true" /> Mở Google Maps để dẫn đường ↗
+            </a>
+            <p className="citypass-maps-disclaimer"><Info size={15} aria-hidden="true" /> Google Maps <strong>tự tính lại tuyến</strong> và có thể đổi đường hoặc thời gian so với CityPass. Các điểm trung gian chỉ giúp tham khảo lộ trình, không bảo đảm giống hệt hoặc tránh ngập. Kiểm tra biển báo và tình trạng thực tế trước khi đi.</p>
+          </section>}
+          <p className="subtle" style={{ marginTop: 10, fontSize: 10 }}><ShieldAlert size={13} style={{ display: "inline", verticalAlign: "middle" }} /> {mode === "demo" ? "Dữ liệu ngập minh họa, không dùng để quyết định đi lại." : "Tuyến gợi ý không được bảo đảm khô ráo. Thiếu báo cáo không nghĩa là an toàn."} Tuyến TomTom có xét traffic khi cấu hình API key, nếu không sẽ dự phòng OSRM. Dữ liệu định tuyến ô tô không thay thế chỉ dẫn phù hợp xe máy.</p>
+        </div>}
+      </section>
+    </main>
+    {dialog === "report" && <ReportDialog onClose={() => setDialog(null)} db={db.current} userId={userId} initialPoint={reportPoint} onPick={() => { setDialog(null); setPickMode("report"); }} onSuccess={() => { setDialog(null); setRefreshKey(k => k + 1); }} />}
+    {dialog === "login" && <LoginDialog onClose={() => setDialog(null)} db={db.current} userId={userId} />}
+    {dialog === "camera" && selectedCamera && <CameraDialog camera={selectedCamera} onClose={() => setDialog(null)} />}
+    {dialog === "incident" && selectedIncident && <IncidentDialog item={selectedIncident} onClose={() => setDialog(null)} db={db.current} userId={userId} onRefresh={() => setRefreshKey(k => k + 1)} />}
+  </div>;
+}
+
+type Db = ReturnType<typeof browserDb>;
+function ModalFrame({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
+  return <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }} role="presentation"><div className="modal" role="dialog" aria-modal="true" aria-label={title} onKeyDown={e => { if (e.key === "Escape") onClose(); }}><div className="modal-row"><h2 className="route-title">{title}</h2><button className="btn" style={{ minWidth: 39, padding: 0 }} onClick={onClose} aria-label="Đóng"><X size={19} /></button></div>{children}</div></div>;
+}
+function LoginDialog({ db, userId, onClose }: { db: Db; userId: string | null; onClose: () => void }) {
+  const [email, setEmail] = useState(""); const [message, setMessage] = useState(""); const [busy, setBusy] = useState(false);
+  async function login() { if (!db) return; setBusy(true); setMessage(""); const { error } = await db.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin } }); setMessage(error ? error.message : "Đã gửi liên kết đăng nhập. Kiểm tra email của bạn."); setBusy(false); }
+  return <ModalFrame title="Tài khoản CityPass" onClose={onClose}>
+    {!db && <p className="warning-box">Chưa cấu hình Supabase. Chế độ hiện tại chỉ để xem giao diện, không thể đăng nhập hay gửi báo cáo thật.</p>}
+    {db && userId && <><p className="notice-success">Đã đăng nhập. Bạn có thể báo sự cố và xác minh cộng đồng.</p><button className="btn" onClick={() => { void db.auth.signOut(); onClose(); }}>Đăng xuất</button></>}
+    {db && !userId && <><p className="subtle" style={{ marginTop: 12 }}>Nhập email để nhận liên kết đăng nhập không cần mật khẩu.</p><label className="field">Email<input type="email" value={email} placeholder="ban@example.com" onChange={e => setEmail(e.target.value)} /></label><button className="btn btn-primary" style={{ width: "100%", marginTop: 14 }} disabled={!email.includes("@") || busy} onClick={() => void login()}>{busy ? "Đang gửi…" : "Gửi liên kết đăng nhập"}</button>{message && <p className="notice-success" role="status">{message}</p>}</>}
+  </ModalFrame>;
+}
+function ReportDialog({ db, userId, initialPoint, onPick, onClose, onSuccess }: { db: Db; userId: string | null; initialPoint: Point | null; onPick: () => void; onClose: () => void; onSuccess: () => void }) {
+  const [type, setType] = useState<"FLOOD" | "TRAFFIC_JAM">("FLOOD");
+  const [severity, setSeverity] = useState(1);
+  const [note, setNote] = useState(""); const [photo, setPhoto] = useState<File | null>(null);
+  const [busy, setBusy] = useState(false); const [error, setError] = useState("");
+  async function submit() {
+    if (!db || !initialPoint || !userId) return;
+    setBusy(true); setError("");
+    try {
+      const { data } = await db.auth.getSession(); const token = data.session?.access_token;
+      if (!token) throw new Error("Phiên đăng nhập đã hết hạn.");
+      let photo_url: string | null = null;
+      if (photo) {
+        if (photo.size > 5 * 1024 * 1024 || !["image/png", "image/jpeg", "image/webp"].includes(photo.type)) throw new Error("Ảnh cần là JPG/PNG/WebP, tối đa 5MB.");
+        const ext = photo.type === "image/png" ? "png" : photo.type === "image/webp" ? "webp" : "jpg";
+        const path = `${userId}/${crypto.randomUUID()}.${ext}`;
+        const { error: uploadError } = await db.storage.from("report-photos").upload(path, photo, { contentType: photo.type });
+        if (uploadError) throw new Error(`Không tải được ảnh: ${uploadError.message}`);
+        photo_url = db.storage.from("report-photos").getPublicUrl(path).data.publicUrl;
+      }
+      const response = await fetch("/api/v1/reports", { method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` }, body: JSON.stringify({ type, severity, lat: initialPoint[0], lng: initialPoint[1], note, photo_url }) });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error ?? "Không gửi được báo cáo.");
+      onSuccess();
+    } catch (e) { setError(e instanceof Error ? e.message : "Có lỗi xảy ra."); }
+    finally { setBusy(false); }
+  }
+  return <ModalFrame title="Báo cáo điểm ngập / kẹt xe" onClose={onClose}>
+    <p className="subtle" style={{ marginTop: 10 }}>Báo cáo sẽ ở trạng thái chờ xác minh. Chỉ báo cáo thông tin bạn trực tiếp quan sát được.</p>
+    {!db && <p className="warning-box">Cần cấu hình Supabase để gửi báo cáo thật.</p>}
+    {db && !userId && <p className="warning-box">Hãy bấm biểu tượng tài khoản ở thanh trên để đăng nhập trước khi báo cáo.</p>}
+    <label className="field">Loại cảnh báo<select value={type} onChange={e => setType(e.target.value as "FLOOD" | "TRAFFIC_JAM")}><option value="FLOOD">Ngập nước</option><option value="TRAFFIC_JAM">Ùn tắc giao thông</option></select></label>
+    <label className="field">Mức độ<select value={severity} onChange={e => setSeverity(Number(e.target.value))}><option value={1}>Mức 1 · Nhẹ</option><option value={2}>Mức 2 · Trung bình</option><option value={3}>Mức 3 · Nghiêm trọng</option></select></label>
+    <label className="field">Mô tả (10–500 ký tự)<textarea maxLength={500} rows={3} value={note} onChange={e => setNote(e.target.value)} placeholder="Mô tả địa điểm, tình trạng giao thông hoặc mực nước quan sát được..." /></label>
+    <label className="field">Ảnh hiện trường (không bắt buộc)<input type="file" accept="image/jpeg,image/png,image/webp" onChange={e => setPhoto(e.target.files?.[0] ?? null)} /></label>
+    <button className="btn" style={{ width: "100%", marginTop: 12 }} onClick={onPick}><MapPin size={15} />{initialPoint ? `${initialPoint[0].toFixed(5)}, ${initialPoint[1].toFixed(5)} · Đổi vị trí` : "Chọn vị trí trên bản đồ"}</button>
+    {error && <p className="notice-error" role="alert">{error}</p>}
+    <button className="btn btn-primary" style={{ width: "100%", marginTop: 14 }} disabled={!db || !userId || !initialPoint || note.trim().length < 10 || busy} onClick={() => void submit()}>{busy ? "Đang gửi…" : "Gửi báo cáo chờ xác minh"}</button>
+  </ModalFrame>;
+}
+function IncidentDialog({ item, db, userId, onClose, onRefresh }: { item: Incident; db: Db; userId: string | null; onClose: () => void; onRefresh: () => void }) {
+  const [busy, setBusy] = useState(false); const [message, setMessage] = useState("");
+  async function vote(vote_type: "confirm" | "false_alarm") {
+    if (!db || !userId || item.is_demo) return;
+    setBusy(true); setMessage("");
+    navigator.geolocation.getCurrentPosition(async (position) => {
+      try {
+        const { data } = await db.auth.getSession();
+        const response = await fetch(`/api/v1/reports/${item.id}/verify`, {
+          method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${data.session?.access_token ?? ""}` },
+          body: JSON.stringify({ vote_type, lat: position.coords.latitude, lng: position.coords.longitude, accuracy_m: position.coords.accuracy })
+        });
+        const body = await response.json(); if (!response.ok) throw new Error(body.error ?? "Không bỏ phiếu được.");
+        setMessage("Đã ghi nhận phiếu; dữ liệu sẽ được cập nhật sau khi kiểm tra."); onRefresh();
+      } catch (error) { setMessage(error instanceof Error ? error.message : "Không thể bỏ phiếu"); }
+      finally { setBusy(false); }
+    }, () => { setBusy(false); setMessage("Cần cho phép truy cập vị trí và ở gần điểm báo cáo để xác minh."); }, { enableHighAccuracy: true, timeout: 12000 });
+  }
+  return <ModalFrame title={item.title} onClose={onClose}>
+    <p className="subtle" style={{ marginTop: 10 }}>{item.is_demo ? "DỮ LIỆU HƯ CẤU — KHÔNG PHẢI TÌNH TRẠNG HIỆN TẠI" : item.description}</p>
+    <div className="warning-box" style={{ background: "#f3f8f5", borderColor: "#dce8e1", color: "#31574b" }}><Info size={17} /><span>Mức {item.severity} {item.water_depth_cm != null ? `· ${item.water_depth_cm} cm` : ""} · {statusLabel(item)}<br />{item.is_demo ? "Dữ liệu thử nghiệm" : `Ghi nhận lúc ${formatTime(item.created_at)}`}</span></div>
+    {item.photo_url && !item.is_demo && <a href={item.photo_url} target="_blank" rel="noopener noreferrer" className="btn" style={{ marginTop: 12 }}>Xem ảnh hiện trường</a>}
+    <p className="subtle" style={{ marginTop: 13 }}>Cộng đồng xác nhận: {item.crowd_verifications.confirms} · Báo sai: {item.crowd_verifications.rejects}</p>
+    {item.source === "COMMUNITY" && !item.is_demo && <div style={{ display: "flex", gap: 9, marginTop: 12 }}><button className="btn" disabled={!userId || busy} onClick={() => void vote("confirm")}>Đúng sự thật</button><button className="btn" disabled={!userId || busy} onClick={() => void vote("false_alarm")}>Báo sai</button></div>}
+    {!userId && !item.is_demo && <p className="subtle">Đăng nhập để xác minh báo cáo. Thiết bị cần cung cấp vị trí với độ chính xác phù hợp.</p>}
+    {message && <p className="notice-success" role="status">{message}</p>}
+  </ModalFrame>;
+}
+
+function CameraDialog({ camera, onClose }: { camera: Camera; onClose: () => void }) {
+  return <ModalFrame title={camera.title} onClose={onClose}>
+    <p className="subtle" style={{ margin: "12px 0" }}>Camera chỉ cung cấp hình ảnh quan sát. Không thể xác nhận độ sâu ngập, mức độ an toàn hoặc thời gian thực từ ảnh.</p>
+    {camera.snapshot_url ? <CameraSnapshot camera={camera} /> : camera.stream_url ? <CameraPlayer url={camera.stream_url} /> : <p className="warning-box">Camera chưa có nguồn hiển thị hợp lệ.</p>}
+  </ModalFrame>;
+}
+
+================
+File: src/components/map-view.tsx
+================
+"use client";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Circle, CircleMarker, MapContainer, Marker, Polyline, Popup, TileLayer, ZoomControl, useMap, useMapEvents } from "react-leaflet";
+import L from "leaflet";
+import type { Camera, Incident, RouteOption } from "@/lib/types";
+import type { WeatherArea } from "@/lib/weather-areas";
+import type { TrafficPoint } from "@/lib/traffic";
+import { HCMC } from "@/lib/config";
+
+type Point = [number, number];
+type Props = {
+  weatherAreas: WeatherArea[];
+  trafficEnabled: boolean;
+  trafficPoints: TrafficPoint[];
+  onSelectTraffic: (point: TrafficPoint) => void;
+  selectedWeatherId: string | null;
+  onSelectWeather: (area: WeatherArea) => void;
+  incidents: Incident[];
+  cameras: Camera[];
+  rain: boolean;
+  radar: { tile_url: string; time: number } | null;
+  radarOpacity: number;
+  gps: { point: Point; accuracy: number } | null;
+  focus: Point | null;
+  pickMode: "from" | "to" | "report" | null;
+  onPick: (point: Point) => void;
+  onMove: (lat: number, lng: number) => void;
+  onSelectIncident: (item: Incident) => void;
+  onSelectCamera: (item: Camera) => void;
+  routes: RouteOption[];
+  selectedRoute: string | null;
+  from: Point | null;
+  to: Point | null;
+};
+function Events({ onPick, onMove, pickMode }: Pick<Props, "onPick" | "onMove" | "pickMode">) {
+  const map = useMapEvents({
+    click(e) { if (pickMode) onPick([e.latlng.lat, e.latlng.lng]); },
+    moveend() { const p = map.getCenter(); onMove(p.lat, p.lng); }
+  });
+  return null;
+}
+function Focus({ point }: { point: Point | null }) {
+  const map = useMap();
+  useEffect(() => { if (point) map.flyTo(point, Math.max(map.getZoom(), 13), { duration: 0.5 }); }, [point, map]);
+  return null;
+}
+function FitSelectedRoute({ routes, selectedRoute }: Pick<Props, "routes" | "selectedRoute">) {
+  const map = useMap();
+  const current = routes.find(route => route.id === selectedRoute);
+  useEffect(() => {
+    if (!current || current.geometry.length < 2) return;
+    const bounds = L.latLngBounds(current.geometry);
+    if (!bounds.isValid()) return;
+    map.fitBounds(bounds, { paddingTopLeft: [32, 45], paddingBottomRight: [32, 175], maxZoom: 15, animate: true });
+  }, [current, map]);
+  return null;
+}
+// CityPass base-map resilience: fail over on tile failures/timeouts, never silently show a grey map.
+const BASEMAP_SOURCES = [
+  {
+    id: "osm-standard",
+    label: "OpenStreetMap",
+    url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+  },
+  {
+    id: "osm-hot",
+    label: "OpenStreetMap HOT",
+    url: "https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>, tiles courtesy of <a href="https://www.openstreetmap.fr/">OpenStreetMap France</a>'
+  }
+] as const;
+
+function MapSizeSync() {
+  const map = useMap();
+  useEffect(() => {
+    let scheduled = 0;
+    const update = () => {
+      cancelAnimationFrame(scheduled);
+      scheduled = requestAnimationFrame(() => map.invalidateSize({ pan: false, animate: false }));
+    };
+    const element = map.getContainer();
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(update);
+    observer?.observe(element);
+    update();
+    return () => { observer?.disconnect(); cancelAnimationFrame(scheduled); };
+  }, [map]);
+  return null;
+}
+
+function BaseMapTiles() {
+  const [index, setIndex] = useState(0);
+  const [retry, setRetry] = useState(0);
+  const [status, setStatus] = useState<"loading" | "slow" | "ready" | "error">("loading");
+  const hasTile = useRef(false);
+  const errors = useRef(0);
+  const current = BASEMAP_SOURCES[index];
+
+  const switchBaseMapSource = useCallback((nextIndex: number) => {
+    hasTile.current = false;
+    errors.current = 0;
+    setStatus("loading");
+    setIndex(nextIndex);
+    setRetry(n => n + 1);
+  }, []);
+
+  useEffect(() => {
+    // Some networks stall rather than return an HTTP error; a timeout also triggers failover.
+    const slow = window.setTimeout(() => {
+      if (!hasTile.current) setStatus("slow");
+    }, 3500);
+    const deadline = window.setTimeout(() => {
+      if (hasTile.current) return;
+      if (index < BASEMAP_SOURCES.length - 1) switchBaseMapSource(index + 1);
+      else setStatus("error");
+    }, 9000);
+    return () => { window.clearTimeout(slow); window.clearTimeout(deadline); };
+  }, [index, retry, switchBaseMapSource]);
+
+  const onTileLoaded = useCallback(() => {
+    hasTile.current = true;
+    errors.current = 0;
+    setStatus("ready");
+  }, []);
+  const onTileError = useCallback(() => {
+    errors.current += 1;
+    if (hasTile.current || errors.current < 4) return;
+    if (index < BASEMAP_SOURCES.length - 1) switchBaseMapSource(index + 1);
+    else setStatus("error");
+  }, [index, switchBaseMapSource]);
+
+  return <>
+    <TileLayer
+      key={`${current.id}-${retry}`}
+      url={current.url}
+      attribution={current.attribution}
+      maxZoom={19}
+      eventHandlers={{ tileload: onTileLoaded, tileerror: onTileError }}
+    />
+    {(status === "slow" || status === "error") && <div
+      role={status === "error" ? "alert" : "status"}
+      style={{ position: "absolute", zIndex: 700, left: "50%", top: 100, transform: "translateX(-50%)", width: "min(420px, calc(100% - 24px))", border: "1px solid #bad6cf", borderRadius: 12, padding: 14, background: "rgba(255,255,255,.97)", color: "#22483e", boxShadow: "0 8px 25px #152e2533", textAlign: "left", pointerEvents: "auto" }}
+    >
+      <strong style={{ fontSize: 13 }}>{status === "error" ? "Không tải được nền bản đồ" : "Đang thử kết nối bản đồ..."}</strong>
+      <p style={{ fontSize: 12, margin: "6px 0 10px", lineHeight: 1.5 }}>
+        {status === "error"
+          ? "Có thể mạng hoặc tiện ích trình duyệt đang chặn ảnh bản đồ. Hãy kiểm tra kết nối, tắt VPN/ad blocker và thử đổi nguồn."
+          : `Nguồn ${current.label} phản hồi chậm. CityPass sẽ tự thử nguồn dự phòng.`}
+      </p>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <button type="button" onClick={() => switchBaseMapSource(index)} style={{ background: "#08776c", color: "white", borderRadius: 8, minHeight: 38, padding: "8px 12px", fontWeight: 700 }}>Thử lại</button>
+        <button type="button" onClick={() => switchBaseMapSource((index + 1) % BASEMAP_SOURCES.length)} style={{ background: "#ebf4f1", borderRadius: 8, minHeight: 38, padding: "8px 12px", fontWeight: 700 }}>Đổi nguồn bản đồ</button>
+      </div>
+    </div>}
+  </>;
+}
+
+function riskMarker(item: Incident) {
+  const state = item.status === "PENDING" ? "pending" : "";
+  return L.divIcon({
+    className: "",
+    html: `<div class="flood-marker sev${item.severity} ${state}" aria-label="Mức ${item.severity}">${item.type === "TRAFFIC_JAM" ? "!" : item.severity}</div>`,
+    iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -18]
+  });
+}
+function weatherMarker(area: WeatherArea, active: boolean) {
+  const label = area.condition === "rain" ? `Mưa ${area.precipitationMm.toFixed(1)}` : area.condition === "cloud" ? "Nhiều mây" : area.isDay ? "Nắng" : "Quang mây";
+  const kind = area.condition === "rain" ? "rain" : area.condition === "cloud" ? "cloud" : "clear";
+  return L.divIcon({
+    className: "weather-pin-host",
+    html: `<div class="weather-map-pin ${kind}${active ? " active" : ""}"><span class="weather-map-dot"></span>${label}</div>`,
+    iconSize: [104, 34], iconAnchor: [52, 17], popupAnchor: [0, -16]
+  });
+}
+export default function MapView(props: Props) {
+  const markers = useMemo(() => props.incidents.map(item => ({ item, icon: riskMarker(item) })), [props.incidents]);
+  return <MapContainer center={[HCMC.lat, HCMC.lng]} zoom={12} minZoom={6} maxZoom={18} zoomControl={false} attributionControl className="map-canvas" preferCanvas>
+    <BaseMapTiles />
+    <MapSizeSync />
+    {props.rain && props.radar && <TileLayer key={props.radar.time} url={props.radar.tile_url} minZoom={3} maxNativeZoom={7} maxZoom={18} opacity={props.radarOpacity} zIndex={300} attribution='<a href="https://www.rainviewer.com/">RainViewer</a>' />}
+    {props.trafficEnabled && <TileLayer
+      url="/api/v1/traffic/tile?z={z}&x={x}&y={y}"
+      minZoom={10} maxZoom={18} maxNativeZoom={18} opacity={0.88} zIndex={385}
+      attribution='Traffic &copy; <a href="https://www.tomtom.com/">TomTom</a>'
+    />}
+    <Events onPick={props.onPick} onMove={props.onMove} pickMode={props.pickMode} />
+    <Focus point={props.focus} />
+    <FitSelectedRoute routes={props.routes} selectedRoute={props.selectedRoute} />
+    <ZoomControl position="bottomright" />
+    {props.gps && <>
+      <Circle center={props.gps.point} radius={Math.max(5, props.gps.accuracy)} pathOptions={{ color: "#1468b8", fillColor: "#5399df", fillOpacity: .12, weight: 1 }} interactive={false} />
+      <CircleMarker center={props.gps.point} radius={7} pathOptions={{ color: "#fff", weight: 3, fillColor: "#1265ad", fillOpacity: 1 }}><Popup>Vị trí GPS gần đúng · sai số ±{Math.round(props.gps.accuracy)} m</Popup></CircleMarker>
+    </>}
+    {markers.map(({ item, icon }) => <Marker key={item.id} position={[item.geometry.coordinates[1], item.geometry.coordinates[0]]} icon={icon}>
+      <Popup>
+        <div style={{ minWidth: 170 }}>
+          <strong>{item.title}</strong><br />
+          <span>{item.is_demo ? "DỮ LIỆU MINH HỌA — KHÔNG CÓ THẬT" : `${item.source === "COMMUNITY" ? "Báo cáo người dùng" : "Cảm biến"} · Mức ${item.severity}`}</span><br />
+          <button style={{ marginTop: 8, color: "#0a7668", fontWeight: 700 }} onClick={() => props.onSelectIncident(item)}>Xem chi tiết</button>
+        </div>
+      </Popup>
+    </Marker>)}
+    {props.trafficPoints.map(point => <CircleMarker key={point.id} center={[point.lat, point.lng]} radius={7}
+      pathOptions={{ color: "#fff", weight: 2, fillOpacity: 0.94, fillColor: point.level === "clear" ? "#1aa76c" : point.level === "slow" ? "#dcb338" : point.level === "jam" ? "#e76931" : "#b72c35" }}
+      eventHandlers={{ click: () => props.onSelectTraffic(point) }}>
+      <Popup><div className="traffic-map-popup"><strong>{point.name}</strong><p>{point.label} · gần đoạn đường này</p><p>Hiện tại: {point.currentSpeed} km/h · Bình thường: {point.freeFlowSpeed} km/h</p><small>TomTom Traffic Flow · mẫu điểm; không đại diện toàn quận.</small></div></Popup>
+    </CircleMarker>)}
+    {props.weatherAreas.map(area => <Marker key={area.id} position={[area.lat, area.lng]} icon={weatherMarker(area, props.selectedWeatherId === area.id)} zIndexOffset={550} eventHandlers={{ click: () => props.onSelectWeather(area) }}>
+      <Popup><div className="weather-map-popup"><strong>{area.name}</strong><p>{area.conditionLabel} (ước tính theo mô hình)</p><p>Nhiệt độ: {area.temperatureC.toFixed(1)}°C · Mây {area.cloudCover}%</p><p>Mưa 15 phút: {area.precipitationMm.toFixed(1)} mm</p>{area.rainChanceNextHours != null && <p>Khả năng mưa dự báo trong 3 giờ: tối đa {area.rainChanceNextHours}%</p>}<small>Giờ mô hình: {area.time.replace("T", " ")} · Nguồn Open-Meteo. Không phải cảm biến tại chỗ.</small></div></Popup>
+    </Marker>)}
+    {props.cameras.map(camera => <CircleMarker key={camera.id} center={[camera.lat, camera.lng]} radius={10} pathOptions={{ color: "#7254b7", fillColor: "#7254b7", fillOpacity: .8 }}>
+      <Popup><strong>{camera.title}</strong><p>{camera.snapshot_url ? "Ảnh camera cập nhật định kỳ (không phải video trực tiếp)." : camera.stream_url ? "Luồng video HLS." : "Chưa có hình ảnh."}</p>{(camera.snapshot_url || camera.stream_url) && <button onClick={() => props.onSelectCamera(camera)} style={{ color: "#0a7668", fontWeight: 700 }}>Xem camera</button>}</Popup>
+    </CircleMarker>)}
+    {props.routes.map(route => <Polyline key={route.id} positions={route.geometry} pathOptions={{ color: props.selectedRoute === route.id ? "#087d6e" : "#648ba3", weight: props.selectedRoute === route.id ? 7 : 4, opacity: props.selectedRoute === route.id ? .96 : .48 }} eventHandlers={{ click: () => {} }} />)}
+    {props.from && <CircleMarker center={props.from} radius={9} pathOptions={{ color: "#fff", fillColor: "#087d6e", fillOpacity: 1, weight: 3 }}><Popup>Điểm xuất phát</Popup></CircleMarker>}
+    {props.to && <CircleMarker center={props.to} radius={9} pathOptions={{ color: "#fff", fillColor: "#213f7b", fillOpacity: 1, weight: 3 }}><Popup>Điểm đến</Popup></CircleMarker>}
+  </MapContainer>;
+}
+
+================
+File: src/components/radar-timeline.tsx
+================
+"use client";
+import { Pause, Play, RefreshCw, CloudRain } from "lucide-react";
+import type { RadarFrame } from "@/lib/radar";
+
+type Props = {
+  frames: RadarFrame[];
+  index: number;
+  opacity: number;
+  playing: boolean;
+  error: string;
+  onIndex: (index: number) => void;
+  onOpacity: (value: number) => void;
+  onPlaying: (value: boolean) => void;
+  onReload: () => void;
+};
+
+function hour(time: number): string {
+  return new Date(time * 1000).toLocaleTimeString("vi-VN", {
+    timeZone: "Asia/Ho_Chi_Minh", hour: "2-digit", minute: "2-digit"
+  });
+}
+
+export default function RadarTimeline({ frames, index, opacity, playing, error, onIndex, onOpacity, onPlaying, onReload }: Props) {
+  const ready = frames.length > 0;
+  const current = frames[Math.min(index, frames.length - 1)];
+  return <section className="radar-panel" aria-label="Điều khiển radar mưa lịch sử">
+    <div className="radar-header">
+      <span className="radar-title"><CloudRain size={17} /> Radar mưa gần đây</span>
+      <button className="icon-inline" title="Tải lại ảnh radar" aria-label="Tải lại radar" onClick={onReload}><RefreshCw size={16} /></button>
+    </div>
+    {ready ? <>
+      <p className="radar-subtitle">Ảnh lúc <strong>{hour(current.time)}</strong> · {frames.length} mốc thời gian trước đây</p>
+      <div className="radar-play-row">
+        <button className="btn radar-play" aria-label={playing ? "Tạm dừng radar" : "Phát hoạt ảnh radar"} onClick={() => onPlaying(!playing)}>
+          {playing ? <Pause size={16} /> : <Play size={16} />}
+          {playing ? "Tạm dừng" : "Phát"}
+        </button>
+        <label className="radar-slider-label">Mốc radar
+          <input type="range" min={0} max={Math.max(0, frames.length - 1)} step={1} value={Math.min(index, frames.length - 1)} onChange={event => { onPlaying(false); onIndex(Number(event.target.value)); }} aria-label="Chọn thời điểm radar" />
+        </label>
+      </div>
+      <div className="radar-time-label"><span>{hour(frames[0].time)}</span><span>{hour(frames[frames.length - 1].time)}</span></div>
+      <label className="radar-opacity">Độ đậm lớp mưa <strong>{Math.round(opacity * 100)}%</strong>
+        <input type="range" min={20} max={100} step={10} value={Math.round(opacity * 100)} onChange={event => onOpacity(Number(event.target.value) / 100)} aria-label="Điều chỉnh độ đậm lớp mưa" />
+      </label>
+      <p className="radar-disclaimer">Radar là ảnh quan sát trước đây, có thể trễ và thiếu vùng phủ. Không dự báo mực nước ngập.</p>
+    </> : <p className="radar-no-data" role="status">{error || "Đang tải các khung radar..."}</p>}
+  </section>;
+}
+
+================
+File: src/components/traffic-panel.tsx
+================
+"use client";
+import { CarFront, RefreshCw } from "lucide-react";
+import type { TrafficAreaResponse, TrafficPoint } from "@/lib/traffic";
+type Props = { data: TrafficAreaResponse | null; loading: boolean; error: string; selectedId: string | null; onSelect: (point: TrafficPoint) => void; onReload: () => void };
+export default function TrafficPanel({ data, loading, error, selectedId, onSelect, onReload }: Props) {
+  return <section className="traffic-areas-panel" aria-label="Mức độ giao thông tại các điểm khảo sát">
+    <div className="section-row" style={{ margin: 0 }}><span className="section-title"><CarFront size={15} style={{ display: "inline", verticalAlign: "middle" }} /> Tình trạng giao thông</span><button className="btn" aria-label="Làm mới giao thông" onClick={onReload} style={{ padding: "6px 9px" }}><RefreshCw size={15}/></button></div>
+    <p className="traffic-hint">Dữ liệu gần thời gian thực từ đoạn đường gần điểm đo, cập nhật tối đa mỗi 90 giây. Không đại diện cho cả quận.</p>
+    {loading && !data && <p className="traffic-hint">Đang tải tốc độ giao thông…</p>}
+    {(error || data?.error) && <p className="notice-error" role="status">{error || data?.error}</p>}
+    {data?.configured === false && <p className="traffic-hint">Để xem mật độ giao thông và chọn tuyến có xét kẹt xe, cần thêm <code>TOMTOM_API_KEY</code> vào <code>.env.local</code>.</p>}
+    {data?.points && data.points.length > 0 && <>
+      <div className="traffic-area-list">{data.points.map(item => <button key={item.id} className={`traffic-area-item ${selectedId === item.id ? "active" : ""}`} onClick={() => onSelect(item)}><span className={`traffic-spot ${item.level}`} aria-hidden="true"/><span><strong>{item.name}</strong><small>{item.label} · {item.currentSpeed} / {item.freeFlowSpeed} km/h</small></span></button>)}</div>
+      <p className="traffic-hint">Các điểm chỉ là mẫu tốc độ đoạn đường gần nhất; một tuyến phố khác trong cùng khu vực có thể khác hẳn.</p>
+    </>}
+  </section>;
+}
+
+================
+File: src/components/weather-areas-panel.tsx
+================
+"use client";
+import { Cloud, CloudRain, CloudSun, RefreshCw, Sun } from "lucide-react";
+import type { WeatherArea } from "@/lib/weather-areas";
+
+type Props = {
+  areas: WeatherArea[];
+  selectedId: string | null;
+  updatedAt: string | null;
+  loading: boolean;
+  error: string;
+  onSelect: (area: WeatherArea) => void;
+  onReload: () => void;
+};
+const displayTime = (value: string) => {
+  const [date, time] = value.split("T");
+  return date && time ? `${time.slice(0, 5)} · ${date.split("-").reverse().join("/")}` : value;
+};
+export default function WeatherAreasPanel({ areas, selectedId, updatedAt, loading, error, onSelect, onReload }: Props) {
+  const rain = areas.filter(a => a.condition === "rain").length;
+  const clear = areas.filter(a => a.condition === "clear").length;
+  const ordered = [...areas].sort((a, b) => (b.condition === "rain" ? 1 : 0) - (a.condition === "rain" ? 1 : 0) || b.precipitationMm - a.precipitationMm || a.name.localeCompare(b.name, "vi"));
+  return <section className="weather-areas-panel" aria-label="Thời tiết mô hình tại các khu vực TP.HCM">
+    <div className="weather-areas-header"><div><strong>Thời tiết từng khu vực</strong><span>Ước tính hiện tại · cập nhật mỗi 5 phút</span></div>
+      <button type="button" className="icon-inline" aria-label="Làm mới thời tiết" onClick={onReload} disabled={loading}><RefreshCw size={16} /></button>
+    </div>
+    {loading && !areas.length && <p className="weather-areas-message" role="status">Đang tải thời tiết các khu vực…</p>}
+    {error && <p className="weather-areas-error" role="alert">{error} <button type="button" onClick={onReload}>Thử lại</button></p>}
+    {!!areas.length && <>
+      <div className="weather-counts"><span><CloudRain size={15} /> <b>{rain}</b> vùng có tín hiệu mưa</span><span><Sun size={15} /> <b>{clear}</b> vùng ít mây/quang</span></div>
+      <div className="weather-areas-list">{ordered.map(area => <button key={area.id} type="button" onClick={() => onSelect(area)} className={`weather-area-row ${selectedId === area.id ? "active" : ""}`}>
+        <span className={`weather-area-icon ${area.condition}`}>{area.condition === "rain" ? <CloudRain size={18} /> : area.condition === "cloud" ? <Cloud size={18} /> : area.isDay ? <CloudSun size={18} /> : <Sun size={18} />}</span>
+        <span className="weather-area-name"><b>{area.name}</b><small>{area.conditionLabel} · Mưa {area.precipitationMm.toFixed(1)} mm / 15 phút</small></span>
+        <span className="weather-area-temp">{Math.round(area.temperatureC)}°</span>
+      </button>)}</div>
+      <p className="weather-areas-foot">Giờ mô hình: {displayTime(areas[0].time)} (TP.HCM). {updatedAt ? `Tải lúc ${new Date(updatedAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Ho_Chi_Minh" })}.` : ""}</p>
+    </>}
+    <p className="weather-areas-disclaimer">Dữ liệu <b>mô hình Open-Meteo</b>, không phải quan trắc mưa từng con đường. Khu vực ít mây không có nghĩa chắc chắn không mưa.</p>
+  </section>;
+}
+
+================
+File: src/lib/afsc/adapter.ts
+================
+// CHƯA CÓ TÀI LIỆU AFSC THỰC: chỉ nhận cấu trúc CANONICAL bên dưới.
+// Phải chỉnh adapter theo hợp đồng chính thức, không giả định API thành phố có sẵn.
+export interface CanonicalSensorReading { sensor_id: string; lat: number; lng: number; water_level_cm: number; observed_at?: string; }
+export function parseAfscPayload(raw: unknown): CanonicalSensorReading[] {
+  if (!Array.isArray(raw)) throw new Error("Chưa map định dạng AFSC vào CanonicalSensorReading[]");
+  return raw.map(item => {
+    if (!item || typeof item !== "object") throw new Error("Invalid reading");
+    const r = item as Record<string, unknown>;
+    if (typeof r.sensor_id !== "string" || r.sensor_id.length < 1 || r.sensor_id.length > 100 ||
+      typeof r.lat !== "number" || typeof r.lng !== "number" || !Number.isFinite(r.lat) || !Number.isFinite(r.lng) ||
+      Math.abs(r.lat) > 90 || Math.abs(r.lng) > 180 || typeof r.water_level_cm !== "number" ||
+      !Number.isFinite(r.water_level_cm) || r.water_level_cm < 0 || r.water_level_cm > 500 ||
+      (r.observed_at !== undefined && (typeof r.observed_at !== "string" || Number.isNaN(Date.parse(r.observed_at))))) throw new Error("Invalid AFSC canonical record");
+    return { sensor_id: r.sensor_id, lat: r.lat, lng: r.lng, water_level_cm: r.water_level_cm, observed_at: r.observed_at as string | undefined };
+  });
+}
+
+================
+File: src/lib/camera-catalog.ts
+================
+/** Read only the public camera-sheet tab, never the Wi-Fi tab in the referenced project. */
+export const CAMERA_CATALOG_URL = "https://rin2401.github.io/map/";
+export const CAMERA_SHEET_ID = "12q04f4hwtVQjfVSUayDsgXLGGbqrl9urm8gp556nPQA";
+export const CAMERA_SHEET_GID = "382031510";
+
+export type PublicCamera = {
+  id: string;
+  title: string;
+  lat: number;
+  lng: number;
+  stream_url: null;
+  snapshot_url: string;
+  source_url: string;
+  source: "PUBLIC_SNAPSHOT";
+  updated_at: null;
+};
+
+function cellValue(value: unknown): unknown {
+  if (!value || typeof value !== "object") return null;
+  const cell = value as { v?: unknown; f?: unknown };
+  return cell.v ?? cell.f ?? null;
+}
+
+/** Google Visualization wraps a JSON response in a JS callback. Never eval it. */
+export function parseCameraSheet(body: string): PublicCamera[] {
+  if (body.length > 2_000_000) throw new Error("Camera catalog exceeds size limit");
+  if (!/^\s*(?:\/\*O_o\*\/\s*)?google\.visualization\.Query\.setResponse\s*\(/.test(body)) throw new Error("Invalid public camera catalog format");
+  const first = body.indexOf("{");
+  const last = body.lastIndexOf("}");
+  if (first < 0 || last < first) throw new Error("Invalid camera data");
+  const parsed: unknown = JSON.parse(body.slice(first, last + 1));
+  if (!parsed || typeof parsed !== "object" || !("table" in parsed)) throw new Error("Missing public camera table");
+  const table = (parsed as { table?: { rows?: Array<{ c?: unknown[] }> } }).table;
+  if (!Array.isArray(table?.rows)) throw new Error("Missing public camera rows");
+  const result: PublicCamera[] = [];
+  const used = new Set<string>();
+  for (const row of table.rows.slice(0, 5000)) {
+    if (!Array.isArray(row.c) || row.c.length < 4) continue;
+    const lat = Number(cellValue(row.c[0]));
+    const lng = Number(cellValue(row.c[1]));
+    const name = String(cellValue(row.c[2]) ?? "Camera giao thông").trim().slice(0, 110);
+    const camId = String(cellValue(row.c[3]) ?? "").trim();
+    if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat < 9 || lat > 12 || lng < 105 || lng > 108) continue;
+    if (!/^[A-Za-z0-9_-]{1,100}$/.test(camId) || used.has(camId)) continue;
+    used.add(camId);
+    result.push({
+      id: `public-${camId}`, title: name || "Camera giao thông", lat, lng,
+      stream_url: null,
+      snapshot_url: `https://giaothong.hochiminhcity.gov.vn/render/ImageHandler.ashx?id=${encodeURIComponent(camId)}`,
+      source_url: CAMERA_CATALOG_URL,
+      source: "PUBLIC_SNAPSHOT", updated_at: null
+    });
+  }
+  return result;
+}
+
+export function distanceKm(aLat: number, aLng: number, bLat: number, bLng: number) {
+  const rad = Math.PI / 180;
+  const dLat = (bLat - aLat) * rad, dLng = (bLng - aLng) * rad;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(aLat * rad) * Math.cos(bLat * rad) * Math.sin(dLng / 2) ** 2;
+  return 12742 * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+
+export function nearbyPublicCameras(cameras: PublicCamera[], lat: number, lng: number, radiusKm: number) {
+  return cameras.map(camera => ({ camera, distance: distanceKm(lat, lng, camera.lat, camera.lng) }))
+    .filter(item => item.distance <= radiusKm)
+    .sort((a, b) => a.distance - b.distance)
+    .slice(0, 120)
+    .map(item => item.camera);
+}
+
+================
+File: src/lib/config.ts
+================
+export const HCMC = { lat: 10.7769, lng: 106.7009 } as const;
+export const FLOOD_THRESHOLDS = { level1: 10, level2: 20, level3: 35 } as const;
+export const REPORT_TTL_MINUTES = 90;
+export const SENSOR_TTL_MINUTES = 120; // Giá trị tạm cho adapter, cần xác minh với AFSC
+export const CONFIRM_WINDOW_MINUTES = 15;
+export const VERIFY_RADIUS_METERS = 200;
+
+export function floodSeverity(cm: number): 0 | 1 | 2 | 3 {
+  if (!Number.isFinite(cm) || cm < 0) throw new Error("Mực nước không hợp lệ");
+  if (cm < FLOOD_THRESHOLDS.level1) return 0;
+  if (cm < FLOOD_THRESHOLDS.level2) return 1;
+  if (cm <= FLOOD_THRESHOLDS.level3) return 2;
+  return 3;
+}
+
+export function pointIsValid(lat: number, lng: number): boolean {
+  return Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
+}
+
+export function getNumber(value: string | null, min: number, max: number): number | null {
+  if (value === null || value.trim() === "") return null;
+  const n = Number(value);
+  return Number.isFinite(n) && n >= min && n <= max ? n : null;
+}
+
+export function haversineMeters(a: [number, number], b: [number, number]): number {
+  const rad = Math.PI / 180;
+  const dLat = (b[0] - a[0]) * rad;
+  const dLng = (b[1] - a[1]) * rad;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(a[0] * rad) * Math.cos(b[0] * rad) * Math.sin(dLng / 2) ** 2;
+  return 12742000 * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+
+// Nội suy xấp xỉ khoảng cách đến đoạn tuyến; tránh bỏ sót sự cố ở giữa 2 đỉnh polyline.
+export function routeNearPoint(route: [number, number][], point: [number, number], meters = 130): boolean {
+  for (let i = 1; i < route.length; i++) {
+    const a = route[i - 1], b = route[i];
+    const midLat = ((a[0] + b[0]) / 2) * Math.PI / 180;
+    const scaleX = 111320 * Math.cos(midLat), scaleY = 110540;
+    const vx = (b[1] - a[1]) * scaleX, vy = (b[0] - a[0]) * scaleY;
+    const wx = (point[1] - a[1]) * scaleX, wy = (point[0] - a[0]) * scaleY;
+    const t = Math.max(0, Math.min(1, (wx * vx + wy * vy) / (vx * vx + vy * vy || 1)));
+    if (Math.hypot(wx - t * vx, wy - t * vy) <= meters) return true;
+  }
+  return false;
+}
+
+================
+File: src/lib/demo.ts
+================
+import type { Incident } from "./types";
+// MẪU HOÀN TOÀN HƯ CẤU, KHÔNG PHẢI MỰC NƯỚC / SỰ CỐ ĐANG DIỄN RA.
+const samples: Array<[string, number, number, 1 | 2 | 3, number]> = [
+  ["Điểm minh hoạ tại Quận 1", 10.7746, 106.7023, 1, 14],
+  ["Điểm minh hoạ tại Bình Thạnh", 10.8011, 106.7152, 3, 42],
+  ["Điểm minh hoạ tại Thủ Đức", 10.8275, 106.7611, 2, 26],
+  ["Điểm minh hoạ tại Quận 7", 10.7338, 106.7229, 2, 22],
+  ["Điểm minh hoạ tại Phú Nhuận", 10.7955, 106.6815, 1, 12],
+  ["Điểm minh hoạ tại Tân Bình", 10.8127, 106.6631, 3, 39]
+];
+export const DEMO_INCIDENTS: Incident[] = samples.map(([title, lat, lng, severity, cm], i) => ({
+  id: `demo-${i + 1}`, type: "FLOOD", severity: severity as 1 | 2 | 3,
+  status: "PENDING", title: title as string, description: "Dữ liệu hư cấu để kiểm thử giao diện, không dùng quyết định di chuyển.",
+  water_depth_cm: cm as number,
+  geometry: { type: "Point", coordinates: [lng as number, lat as number] },
+  source: "COMMUNITY", crowd_verifications: { confirms: 0, rejects: 0 },
+  created_at: new Date("2026-10-01T00:00:00.000Z").toISOString(), expires_at: null, is_demo: true
+}));
+
+================
+File: src/lib/google-maps.ts
+================
+/**
+ * Google Maps Directions handoff from a CityPass-selected route.
+ * Google Maps ALWAYS computes its own route: waypoints can only suggest a corridor.
+ * Maps URLs need no Google Maps API key. Never include TomTom credentials here.
+ */
+export type MapPoint = readonly [number, number]; // [latitude, longitude]
+export type GoogleTravelMode = "driving" | "two-wheeler";
+
+export interface GoogleMapsDirectionsInput {
+  from: MapPoint;
+  to: MapPoint;
+  geometry: readonly MapPoint[];
+  mode?: GoogleTravelMode;
+  includeWaypoints?: boolean;
+}
+
+const WAYPOINT_FRACTIONS = [0.25, 0.5, 0.75] as const;
+const METERS_PER_DEGREE = 111_195;
+
+export function isValidMapPoint(point: MapPoint): boolean {
+  return Number.isFinite(point[0]) && Number.isFinite(point[1])
+    && point[0] >= -90 && point[0] <= 90
+    && point[1] >= -180 && point[1] <= 180;
+}
+
+function formatPoint(point: MapPoint): string {
+  return `${point[0].toFixed(5)},${point[1].toFixed(5)}`;
+}
+
+function approxMeters(a: MapPoint, b: MapPoint): number {
+  const latDistance = (b[0] - a[0]) * METERS_PER_DEGREE;
+  const lngDistance = (b[1] - a[1]) * METERS_PER_DEGREE * Math.cos(((a[0] + b[0]) / 2) * Math.PI / 180);
+  return Math.hypot(latDistance, lngDistance);
+}
+
+/** Sample by traveled distance, preserving original order (not by array index). */
+export function sampleRouteWaypoints(geometry: readonly MapPoint[]): MapPoint[] {
+  if (geometry.length < 3 || geometry.length > 20_000 || !geometry.every(isValidMapPoint)) return [];
+  const distances: number[] = [0];
+  for (let index = 1; index < geometry.length; index++) {
+    distances.push(distances[index - 1] + approxMeters(geometry[index - 1], geometry[index]));
+  }
+  const total = distances[distances.length - 1];
+  if (!Number.isFinite(total) || total < 450) return [];
+  const chosen: MapPoint[] = [];
+  for (const fraction of WAYPOINT_FRACTIONS) {
+    const target = fraction * total;
+    const end = distances.findIndex(distance => distance >= target);
+    if (end < 1) continue;
+    const segment = distances[end] - distances[end - 1];
+    if (segment <= 0) continue;
+    const progress = (target - distances[end - 1]) / segment;
+    const a = geometry[end - 1], b = geometry[end];
+    const candidate: MapPoint = [a[0] + progress * (b[0] - a[0]), a[1] + progress * (b[1] - a[1])];
+    if (approxMeters(candidate, geometry[0]) < 80 || approxMeters(candidate, geometry[geometry.length - 1]) < 80) continue;
+    if (chosen.some(previous => approxMeters(previous, candidate) < 100)) continue;
+    chosen.push(candidate);
+  }
+  return chosen;
+}
+
+export function buildGoogleMapsDirectionsUrl(input: GoogleMapsDirectionsInput): string | null {
+  if (!isValidMapPoint(input.from) || !isValidMapPoint(input.to)) return null;
+  if (approxMeters(input.from, input.to) < 1) return null;
+  if (input.mode && input.mode !== "driving" && input.mode !== "two-wheeler") return null;
+  const url = new URL("https://www.google.com/maps/dir/");
+  url.searchParams.set("api", "1");
+  url.searchParams.set("origin", formatPoint(input.from));
+  url.searchParams.set("destination", formatPoint(input.to));
+  url.searchParams.set("travelmode", input.mode ?? "driving");
+  url.searchParams.set("dir_action", "navigate");
+  if (input.includeWaypoints !== false) {
+    const waypoints = sampleRouteWaypoints(input.geometry);
+    if (waypoints.length > 0) url.searchParams.set("waypoints", waypoints.map(formatPoint).join("|"));
+  }
+  return url.toString().length <= 2048 ? url.toString() : null;
+}
+
+================
+File: src/lib/http.ts
+================
+import { NextResponse } from "next/server";
+export const jsonError = (message: string, status = 400) => NextResponse.json({ error: message }, { status });
+export const noStoreHeaders = { "Cache-Control": "no-store" };
+
+================
+File: src/lib/radar.ts
+================
+/** RainViewer supplies recent historical radar frames, not a flooding forecast. */
+export interface RadarFrame { time: number; tile_url: string }
+interface RadarManifest {
+  host?: unknown;
+  radar?: { past?: { time?: unknown; path?: unknown }[] };
+}
+
+export function parseRadarFrames(value: unknown): RadarFrame[] {
+  if (!value || typeof value !== "object") return [];
+  const manifest = value as RadarManifest;
+  const inputFrames = manifest.radar?.past;
+  if (manifest.host !== "https://tilecache.rainviewer.com" || !Array.isArray(inputFrames)) return [];
+  const frames = inputFrames.flatMap(frame => {
+    if (typeof frame.time !== "number" || !Number.isSafeInteger(frame.time) ||
+      typeof frame.path !== "string" || !/^\/v2\/radar\/\d+$/.test(frame.path)) return [];
+    return [{ time: frame.time, tile_url: `${manifest.host}${frame.path}/256/{z}/{x}/{y}/2/1_1.png` }];
+  });
+  return frames.sort((a, b) => a.time - b.time).filter((frame, i, all) => i === 0 || frame.time !== all[i - 1].time).slice(-12);
+}
+
+export function clampRadarIndex(index: number, length: number): number {
+  return length === 0 ? 0 : Math.min(length - 1, Math.max(0, Math.trunc(index) || 0));
+}
+
+================
+File: src/lib/supabase/client.ts
+================
+import { createClient } from "@supabase/supabase-js";
+
+export function browserDb() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  return url && key ? createClient(url, key) : null;
+}
+
+================
+File: src/lib/supabase/server.ts
+================
+import { createClient } from "@supabase/supabase-js";
+
+export const isDatabaseReady = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+export function adminDb() {
+  if (!isDatabaseReady) return null;
+  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+    auth: { persistSession: false, autoRefreshToken: false }
+  });
+}
+export async function readAuthorizedUser(request: Request): Promise<string | null> {
+  const header = request.headers.get("Authorization") ?? "";
+  const token = header.startsWith("Bearer ") ? header.slice(7) : "";
+  if (!token || !process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) return null;
+  const client = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    { auth: { persistSession: false, autoRefreshToken: false } });
+  const { data, error } = await client.auth.getUser(token);
+  return error ? null : data.user?.id ?? null;
+}
+
+================
+File: src/lib/traffic.ts
+================
+/** CityPass traffic samples: point readings on nearest road, NOT district-wide measurements. */
+export const TRAFFIC_POINTS = [
+  { id: "q1", name: "Quận 1 · Nguyễn Thị Minh Khai", lat: 10.7828, lng: 106.6969 },
+  { id: "q3", name: "Quận 3 · Điện Biên Phủ", lat: 10.7828, lng: 106.6781 },
+  { id: "binhthanh", name: "Bình Thạnh · Điện Biên Phủ", lat: 10.8012, lng: 106.7118 },
+  { id: "phunhuan", name: "Phú Nhuận · Phan Đăng Lưu", lat: 10.7992, lng: 106.6849 },
+  { id: "tanbinh", name: "Tân Bình · Cộng Hòa", lat: 10.8018, lng: 106.6539 },
+  { id: "q10", name: "Quận 10 · Lý Thường Kiệt", lat: 10.7769, lng: 106.6613 },
+  { id: "q5", name: "Quận 5 · Trần Hưng Đạo", lat: 10.7528, lng: 106.6652 },
+  { id: "q7", name: "Quận 7 · Nguyễn Văn Linh", lat: 10.7289, lng: 106.7151 },
+  { id: "thuduc", name: "Thủ Đức · Võ Nguyên Giáp", lat: 10.8313, lng: 106.7594 },
+  { id: "q12", name: "Quận 12 · Trường Chinh", lat: 10.8366, lng: 106.6286 },
+] as const;
+export type TrafficLevel = "clear" | "slow" | "jam" | "heavy" | "closed";
+export interface TrafficPoint {
+  id: string; name: string; lat: number; lng: number;
+  currentSpeed: number; freeFlowSpeed: number;
+  ratio: number; level: TrafficLevel; label: string;
+  updatedAt: string;
+}
+export interface TrafficAreaResponse {
+  configured: boolean; points: TrafficPoint[]; updated_at: string | null;
+  source: string; error?: string;
+}
+export function classifyFlow(speed: number, freeFlow: number, isClosed = false): { level: TrafficLevel; label: string; ratio: number } | null {
+  if (isClosed) return { level: "closed", label: "Đóng đường (theo nguồn)", ratio: 0 };
+  if (!Number.isFinite(speed) || !Number.isFinite(freeFlow) || speed < 0 || freeFlow <= 0) return null;
+  const ratio = Math.min(1, speed / freeFlow);
+  if (ratio < 0.25) return { level: "heavy", label: "Ùn tắc nặng", ratio };
+  if (ratio < 0.5) return { level: "jam", label: "Ùn tắc", ratio };
+  if (ratio < 0.75) return { level: "slow", label: "Di chuyển chậm", ratio };
+  return { level: "clear", label: "Thông thoáng", ratio };
+}
+export function parseFlow(point: (typeof TRAFFIC_POINTS)[number], json: unknown): TrafficPoint | null {
+  if (!json || typeof json !== "object" || !("flowSegmentData" in json)) return null;
+  const flow = (json as { flowSegmentData?: unknown }).flowSegmentData;
+  if (!flow || typeof flow !== "object") return null;
+  const data = flow as { currentSpeed?: unknown; freeFlowSpeed?: unknown; roadClosure?: unknown };
+  if (typeof data.currentSpeed !== "number" || typeof data.freeFlowSpeed !== "number") return null;
+  const state = classifyFlow(data.currentSpeed, data.freeFlowSpeed, data.roadClosure === true);
+  if (!state) return null;
+  return { ...point, currentSpeed: data.currentSpeed, freeFlowSpeed: data.freeFlowSpeed, ...state, updatedAt: new Date().toISOString() };
+}
+
+================
+File: src/lib/types.ts
+================
+export type IncidentType = "FLOOD" | "TRAFFIC_JAM";
+export type IncidentStatus = "PENDING" | "VERIFIED" | "ACTIVE";
+export type IncidentSource = "AFSC_SENSOR" | "COMMUNITY";
+export interface Incident {
+  id: string;
+  type: IncidentType;
+  severity: 1 | 2 | 3;
+  status: IncidentStatus;
+  title: string;
+  description?: string | null;
+  water_depth_cm: number | null;
+  geometry: { type: "Point"; coordinates: [number, number] };
+  source: IncidentSource;
+  sensor_id?: string | null;
+  crowd_verifications: { confirms: number; rejects: number };
+  photo_url?: string | null;
+  created_at: string;
+  expires_at: string | null;
+  is_demo?: boolean;
+}
+export interface RouteOption {
+  id: string;
+  distance_m: number;
+  duration_s: number;
+  geometry: [number, number][];
+  risk_count: number;
+  risk_score: number;
+  nearby_incidents: string[];
+  traffic_delay_s?: number;
+}
+export interface Camera {
+  id: string; title: string; lat: number; lng: number;
+  stream_url: string | null; updated_at: string | null;
+  snapshot_url?: string | null; source_url?: string | null; source?: "PUBLIC_SNAPSHOT" | "SUPABASE";
+}
+
+================
+File: src/lib/weather-areas.ts
+================
+/** Fixed sampling points across HCMC; these are model grid estimates, NOT physical sensors. */
+export const WEATHER_POINTS = [
+  { id: "q1", name: "Trung tâm · Quận 1", lat: 10.7769, lng: 106.7009 },
+  { id: "q3", name: "Quận 3", lat: 10.7845, lng: 106.6855 },
+  { id: "q5", name: "Quận 5 · Chợ Lớn", lat: 10.754, lng: 106.6657 },
+  { id: "q6", name: "Quận 6", lat: 10.748, lng: 106.6366 },
+  { id: "q7", name: "Quận 7 · Phú Mỹ Hưng", lat: 10.7275, lng: 106.7219 },
+  { id: "q8", name: "Quận 8", lat: 10.722, lng: 106.628 },
+  { id: "q10", name: "Quận 10", lat: 10.7727, lng: 106.6675 },
+  { id: "q12", name: "Quận 12", lat: 10.8635, lng: 106.6588 },
+  { id: "bt", name: "Bình Thạnh", lat: 10.8083, lng: 106.7137 },
+  { id: "pn", name: "Phú Nhuận", lat: 10.7992, lng: 106.6784 },
+  { id: "tb", name: "Tân Bình", lat: 10.803, lng: 106.6501 },
+  { id: "tp", name: "Tân Phú", lat: 10.7907, lng: 106.6293 },
+  { id: "gv", name: "Gò Vấp", lat: 10.8387, lng: 106.6651 },
+  { id: "btan", name: "Bình Tân", lat: 10.7671, lng: 106.6035 },
+  { id: "tdwest", name: "Thủ Đức · Hiệp Bình", lat: 10.8337, lng: 106.7338 },
+  { id: "tdeast", name: "Thủ Đức · Long Phước", lat: 10.8002, lng: 106.8357 },
+  { id: "tn", name: "Thủ Đức · Tăng Nhơn Phú", lat: 10.8461, lng: 106.7786 },
+  { id: "nb", name: "Nhà Bè", lat: 10.694, lng: 106.7332 },
+  { id: "bc", name: "Bình Chánh", lat: 10.6875, lng: 106.5938 },
+  { id: "hm", name: "Hóc Môn", lat: 10.8892, lng: 106.5942 },
+  { id: "cc", name: "Củ Chi", lat: 11.0063, lng: 106.509 },
+  { id: "cg", name: "Cần Giờ", lat: 10.4114, lng: 106.9539 }
+] as const;
+
+export type WeatherCondition = "rain" | "cloud" | "clear";
+export type WeatherArea = {
+  id: string;
+  name: string;
+  lat: number;
+  lng: number;
+  time: string;
+  condition: WeatherCondition;
+  conditionLabel: string;
+  precipitationMm: number;
+  temperatureC: number;
+  cloudCover: number;
+  isDay: boolean;
+  rainChanceNextHours: number | null;
+};
+
+export type AreaWeatherResponse = {
+  areas: WeatherArea[];
+  updated_at: string;
+  source: string;
+  disclaimer: string;
+};
+
+export function classifyWeather(mm: number, code: number, cloudCover: number, isDay: boolean): { condition: WeatherCondition; conditionLabel: string } {
+  if (mm >= 0.1 || (code >= 51 && code <= 67) || (code >= 80 && code <= 82) || (code >= 95 && code <= 99)) {
+    return { condition: "rain", conditionLabel: "Có mưa (mô hình)" };
+  }
+  if (cloudCover >= 55 || [2, 3, 45, 48].includes(code)) {
+    return { condition: "cloud", conditionLabel: "Nhiều mây" };
+  }
+  return { condition: "clear", conditionLabel: isDay ? "Nắng / ít mây" : "Quang mây" };
+}
+
+export function parseAreaWeather(point: { id: string; name: string; lat: number; lng: number }, data: unknown): WeatherArea | null {
+  if (typeof data !== "object" || data === null || !("current" in data)) return null;
+  const root = data as Record<string, unknown>;
+  if (typeof root.current !== "object" || root.current === null) return null;
+  const current = root.current as Record<string, unknown>;
+  const mm = current.precipitation, temp = current.temperature_2m;
+  const cloud = current.cloud_cover, code = current.weather_code, time = current.time;
+  if (typeof mm !== "number" || !Number.isFinite(mm) || mm < 0 || mm > 500 ||
+      typeof temp !== "number" || !Number.isFinite(temp) || temp < -40 || temp > 65 ||
+      typeof cloud !== "number" || !Number.isFinite(cloud) || cloud < 0 || cloud > 100 ||
+      typeof code !== "number" || !Number.isFinite(code) || typeof time !== "string" || !/^\d{4}-\d\d-\d\dT\d\d:\d\d$/.test(time)) return null;
+  const isDay = current.is_day === 1;
+  const hourly = typeof root.hourly === "object" && root.hourly !== null ? root.hourly as Record<string, unknown> : null;
+  const odds = hourly && Array.isArray(hourly.precipitation_probability) ? hourly.precipitation_probability.slice(0, 3).filter((v): v is number => typeof v === "number" && Number.isFinite(v) && v >= 0 && v <= 100) : [];
+  const { condition, conditionLabel } = classifyWeather(mm, code, cloud, isDay);
+  return { ...point, time, condition, conditionLabel, precipitationMm: mm, temperatureC: temp, cloudCover: cloud, isDay, rainChanceNextHours: odds.length ? Math.max(...odds) : null };
+}
+
+================
+File: Start-LoiRao.ps1
+================
+#Requires -Version 5.1
+[CmdletBinding()]
+param(
+  [string]$TargetPath = 'D:\freetime\LoiRao-FloodMap',
+  [switch]$StartDev,
+  [switch]$CheckOnly
+)
+$ErrorActionPreference = 'Stop'
+$project = [System.IO.Path]::GetFullPath($TargetPath)
+Write-Host "[Loi Rao] Project: $project" -ForegroundColor Cyan
+if (-not (Test-Path (Join-Path $project 'package.json'))) {
+  throw "Khong tim thay package.json tai $project. Giai nen ZIP thanh D:\freetime\LoiRao-FloodMap"
+}
+foreach ($cmd in @('node', 'npm')) {
+  if (-not (Get-Command $cmd -ErrorAction SilentlyContinue)) {
+    throw "Chua cai $cmd. Hay cai Node.js LTS (kem npm) va mo PowerShell moi."
+  }
+}
+Push-Location $project
+try {
+  $nodeVersion = (& node --version)
+  Write-Host "Node: $nodeVersion"
+  $major = [int]($nodeVersion -replace "^v([0-9]+).*", '$1')
+  if ($major -lt 22) { throw "Can Node.js 22 tro len, dang dung $nodeVersion" }
+  if (-not (Test-Path '.env.local')) {
+    Copy-Item '.env.example' '.env.local'
+    Write-Host 'Da tao .env.local. Khong ghi API key vao code.' -ForegroundColor Yellow
+  }
+  if (-not (Test-Path 'node_modules')) {
+    Write-Host 'Installing npm dependencies...' -ForegroundColor Cyan
+    & npm.cmd install --no-fund --no-audit
+    if ($LASTEXITCODE -ne 0) { throw "npm install failed ($LASTEXITCODE)" }
+  }
+  if ($CheckOnly) {
+    & npm.cmd run typecheck
+    if ($LASTEXITCODE -ne 0) { throw 'Typecheck failed' }
+    & npm.cmd run lint
+    if ($LASTEXITCODE -ne 0) { throw 'Lint failed' }
+    & npm.cmd run test
+    if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }
+    Write-Host 'Cac buoc kiem tra da hoan tat.' -ForegroundColor Green
+  }
+  if ($StartDev) {
+    Write-Host 'Mo http://localhost:3000 - Ctrl+C de dung.' -ForegroundColor Green
+    & npm.cmd run dev
+    if ($LASTEXITCODE -ne 0) { throw "next dev failed ($LASTEXITCODE)" }
+  } elseif (-not $CheckOnly) {
+    Write-Host 'Khoi tao xong. Chay lai voi -StartDev de mo web.' -ForegroundColor Green
+  }
+} finally { Pop-Location }
+
+================
+File: supabase/migrations/202610080001_initial.sql
+================
+-- Lối Ráo MVP / Postgres + PostGIS. Chạy một lần trong SQL Editor của Supabase.
+  create schema if not exists extensions;
+  create extension if not exists postgis with schema extensions;
+
+  create table if not exists public.incidents (
+    id uuid primary key default gen_random_uuid(),
+    type text not null check (type in ('FLOOD', 'TRAFFIC_JAM')),
+    severity smallint not null check (severity between 1 and 3),
+    title text not null,
+    description text,
+    water_depth_cm numeric(6,2) check (water_depth_cm is null or water_depth_cm >= 0),
+    latitude double precision not null check (latitude between -90 and 90),
+    longitude double precision not null check (longitude between -180 and 180),
+    location extensions.geography(Point, 4326),
+    region_key text,
+    source text not null check (source in ('AFSC_SENSOR','COMMUNITY')),
+    sensor_id text unique,
+    status text not null default 'PENDING' check (status in ('PENDING','VERIFIED','ACTIVE','HIDDEN')),
+    created_by uuid references auth.users(id),
+    photo_url text,
+    created_at timestamptz not null default now(),
+    expires_at timestamptz
+  );
+  create index if not exists idx_incidents_geometry on public.incidents using gist (location);
+  create index if not exists idx_incidents_status_expires on public.incidents (status, expires_at);
+  create index if not exists idx_incidents_actor_created on public.incidents (created_by, created_at desc);
+  create index if not exists idx_incidents_region_key on public.incidents (region_key);
+
+  create or replace function public.set_incident_location()
+  returns trigger language plpgsql set search_path = public, extensions, pg_temp as $$
+  begin
+    new.location := ST_SetSRID(ST_MakePoint(new.longitude, new.latitude), 4326)::extensions.geography;
+    new.region_key := floor(new.latitude / 0.02)::text || ':' || floor(new.longitude / 0.02)::text;
+    return new;
+  end;
+  $$;
+  create trigger incidents_location_before_write before insert or update of latitude, longitude on public.incidents
+  for each row execute function public.set_incident_location();
+
+  create table if not exists public.reports (
+    id uuid primary key default gen_random_uuid(),
+    incident_id uuid not null unique references public.incidents(id) on delete cascade,
+    reporter_id uuid not null references auth.users(id),
+    note text not null check (char_length(note) between 10 and 500),
+    photo_url text,
+    created_at timestamptz not null default now()
+  );
+  create index if not exists idx_reports_reporter on public.reports(reporter_id);
+
+  create table if not exists public.report_verifications (
+    id bigint generated always as identity primary key,
+    incident_id uuid not null references public.incidents(id) on delete cascade,
+    voter_id uuid not null references auth.users(id),
+    vote_type text not null check (vote_type in ('confirm','false_alarm')),
+    latitude double precision not null,
+    longitude double precision not null,
+    accuracy_m double precision not null,
+    created_at timestamptz not null default now(),
+    unique (incident_id, voter_id)
+  );
+  create index if not exists idx_report_votes_incident on public.report_verifications(incident_id, vote_type, created_at);
+  create index if not exists idx_report_votes_voter on public.report_verifications(voter_id);
+
+  create table if not exists public.cameras (
+    id uuid primary key default gen_random_uuid(),
+    title text not null,
+    latitude double precision not null check (latitude between -90 and 90),
+    longitude double precision not null check (longitude between -180 and 180),
+    location extensions.geography(Point,4326),
+    stream_url text,
+    is_public boolean not null default false,
+    updated_at timestamptz not null default now()
+  );
+  create index if not exists idx_cameras_geometry on public.cameras using gist(location);
+  create or replace function public.set_camera_location()
+  returns trigger language plpgsql set search_path = public, extensions, pg_temp as $$
+  begin
+    new.location := ST_SetSRID(ST_MakePoint(new.longitude, new.latitude), 4326)::extensions.geography;
+    return new;
+  end;
+  $$;
+  create trigger cameras_location_before_write before insert or update of latitude,longitude on public.cameras
+  for each row execute function public.set_camera_location();
+
+  -- Chỉ xuất thông tin sự kiện không chứa email, token, user_id hoặc thông tin nhạy cảm.
+  create table if not exists public.incident_events (
+    id bigint generated always as identity primary key,
+    incident_id uuid not null,
+    region_key text not null,
+    event_kind text not null check (event_kind in ('upsert','remove')),
+    created_at timestamptz not null default now()
+  );
+  create index if not exists idx_incident_events_region on public.incident_events(region_key,created_at desc);
+  create or replace function public.emit_incident_event()
+  returns trigger language plpgsql set search_path = public, extensions, pg_temp as $$
+  begin
+    insert into public.incident_events(incident_id,region_key,event_kind)
+    values (new.id, new.region_key,
+      case when new.status = 'HIDDEN' or (new.expires_at is not null and new.expires_at <= now()) then 'remove' else 'upsert' end);
+    return new;
+  end;
+  $$;
+  create trigger incident_event_after_write after insert or update on public.incidents
+  for each row execute function public.emit_incident_event();
+
+  alter table public.incidents enable row level security;
+  alter table public.reports enable row level security;
+  alter table public.report_verifications enable row level security;
+  alter table public.cameras enable row level security;
+  alter table public.incident_events enable row level security;
+
+  create policy "read visible incidents" on public.incidents for select to anon,authenticated
+  using (status in ('ACTIVE','VERIFIED','PENDING') and (expires_at is null or expires_at > now()));
+  -- Ẩn danh tính người gửi khi truy cập incidents qua anon/authenticated.
+  revoke all on table public.incidents from anon, authenticated;
+  grant select (id,type,severity,title,description,water_depth_cm,latitude,longitude,location,
+    region_key,source,sensor_id,status,photo_url,created_at,expires_at) on table public.incidents to anon,authenticated;
+
+  create policy "read own reports" on public.reports for select to authenticated
+  using (reporter_id = (select auth.uid()));
+  create policy "read own votes" on public.report_verifications for select to authenticated
+  using (voter_id = (select auth.uid()));
+  create policy "read licensed cameras" on public.cameras for select to anon,authenticated
+  using (is_public = true);
+  create policy "read event signals" on public.incident_events for select to anon,authenticated using (true);
+  -- Dữ liệu chỉ ghi qua server service-role + transaction RPC. Không grant insert/update/delete công khai.
+
+  create or replace function public.nearby_incidents(p_lat double precision, p_lng double precision, p_radius_km double precision default 5)
+  returns table(id uuid,type text,severity smallint,title text,description text,water_depth_cm numeric,
+  latitude double precision,longitude double precision,source text,sensor_id text,status text,photo_url text,
+  confirms bigint,rejects bigint,created_at timestamptz,expires_at timestamptz)
+  language sql stable security invoker set search_path = public, extensions, pg_temp as $$
+  select i.id,i.type,i.severity,i.title,i.description,i.water_depth_cm,
+          i.latitude,i.longitude,i.source,i.sensor_id,i.status,i.photo_url,
+          (select count(*) from public.report_verifications v where v.incident_id=i.id and v.vote_type='confirm' and v.created_at <= i.created_at + interval '15 minutes') as confirms,
+          (select count(*) from public.report_verifications v where v.incident_id=i.id and v.vote_type='false_alarm') as rejects,
+          i.created_at,i.expires_at
+  from public.incidents i
+  where p_lat between -90 and 90 and p_lng between -180 and 180
+    and p_radius_km between 0.1 and 30
+    and ST_DWithin(i.location, ST_SetSRID(ST_MakePoint(p_lng,p_lat),4326)::extensions.geography, p_radius_km*1000)
+    and i.status in ('ACTIVE','VERIFIED','PENDING') and (i.expires_at is null or i.expires_at>now())
+  order by ST_Distance(i.location,ST_SetSRID(ST_MakePoint(p_lng,p_lat),4326)::extensions.geography) asc limit 200;
+  $$;
+
+  create or replace function public.nearby_cameras(p_lat double precision,p_lng double precision,p_radius_km double precision default 5)
+  returns table(id uuid,title text,lat double precision,lng double precision,stream_url text,updated_at timestamptz)
+  language sql stable security invoker set search_path = public, extensions, pg_temp as $$
+    select c.id,c.title,c.latitude,c.longitude,c.stream_url,c.updated_at from public.cameras c
+    where c.is_public = true and p_lat between -90 and 90 and p_lng between -180 and 180
+      and p_radius_km between 0.1 and 30
+      and ST_DWithin(c.location, ST_SetSRID(ST_MakePoint(p_lng,p_lat),4326)::extensions.geography,p_radius_km*1000)
+    order by ST_Distance(c.location,ST_SetSRID(ST_MakePoint(p_lng,p_lat),4326)::extensions.geography) limit 100;
+  $$;
+
+  create or replace function public.submit_community_report(
+  p_actor uuid,p_type text,p_lat double precision,p_lng double precision,
+  p_severity smallint,p_note text,p_photo_url text default null)
+  returns uuid language plpgsql security definer set search_path=public,extensions,pg_temp as $$
+  declare new_id uuid;
+  begin
+    if not exists(select 1 from auth.users where id=p_actor) then raise exception 'UNAUTHORIZED'; end if;
+    if p_type not in ('FLOOD','TRAFFIC_JAM') or p_severity not between 1 and 3
+      or p_lat not between -90 and 90 or p_lng not between -180 and 180
+      or length(trim(p_note)) not between 10 and 500 then raise exception 'BAD_INPUT'; end if;
+    perform pg_advisory_xact_lock(hashtext(p_actor::text));
+    if (select count(*) from public.reports where reporter_id=p_actor and created_at>now()-interval '60 minutes') >= 3 then
+      raise exception 'RATE_LIMIT';
+    end if;
+    insert into public.incidents(type,severity,title,description,latitude,longitude,source,status,created_by,photo_url,expires_at)
+    values(p_type,p_severity,case when p_type='FLOOD' then 'Người dùng báo ngập' else 'Người dùng báo ùn tắc' end,
+          trim(p_note),p_lat,p_lng,'COMMUNITY','PENDING',p_actor,p_photo_url,now()+interval '90 minutes') returning id into new_id;
+    insert into public.reports(incident_id,reporter_id,note,photo_url) values(new_id,p_actor,trim(p_note),p_photo_url);
+    return new_id;
+  end;
+  $$;
+
+  create or replace function public.verify_community_report(
+  p_actor uuid,p_report_id uuid,p_vote_type text,p_lat double precision,p_lng double precision,p_accuracy_m double precision)
+  returns jsonb language plpgsql security definer set search_path=public,extensions,pg_temp as $$
+  declare event_row public.incidents%rowtype; confirm_count bigint; reject_count bigint; new_status text;
+  begin
+    if p_vote_type not in ('confirm','false_alarm') or p_accuracy_m not between 0 and 100 or
+      p_lat not between -90 and 90 or p_lng not between -180 and 180 then raise exception 'BAD_INPUT'; end if;
+    if not exists(select 1 from auth.users where id=p_actor) then raise exception 'UNAUTHORIZED'; end if;
+    select * into event_row from public.incidents where id=p_report_id for update;
+    if not found or event_row.source <> 'COMMUNITY' or event_row.status='HIDDEN' or
+      event_row.expires_at <= now() or event_row.created_by=p_actor then raise exception 'NOT_ELIGIBLE'; end if;
+    if p_vote_type='confirm' and event_row.created_at < now()-interval '15 minutes' then raise exception 'CONFIRM_WINDOW_CLOSED'; end if;
+    -- Kiểm tra bán kính tại server, nhưng GPS từ trình duyệt vẫn có thể bị giả mạo (xem docs/SECURITY.md).
+    if not ST_DWithin(event_row.location, ST_SetSRID(ST_MakePoint(p_lng,p_lat),4326)::extensions.geography,200)
+    then raise exception 'TOO_FAR'; end if;
+    insert into public.report_verifications(incident_id,voter_id,vote_type,latitude,longitude,accuracy_m)
+      values(p_report_id,p_actor,p_vote_type,p_lat,p_lng,p_accuracy_m);
+    select count(*) filter(where vote_type='confirm' and created_at <= event_row.created_at+interval '15 minutes'),
+          count(*) filter(where vote_type='false_alarm')
+      into confirm_count,reject_count from public.report_verifications where incident_id=p_report_id;
+    -- Khi xung đột: bác bỏ được ưu tiên cho đến khi có quy trình xử lý tranh chấp.
+    new_status := case when reject_count>=2 then 'HIDDEN' when confirm_count>=3 then 'VERIFIED' else event_row.status end;
+    if new_status <> event_row.status then update public.incidents set status=new_status where id=p_report_id; end if;
+    return jsonb_build_object('status',new_status,'confirms',confirm_count,'rejects',reject_count);
+  end;
+  $$;
+
+  revoke all on function public.submit_community_report(uuid,text,double precision,double precision,smallint,text,text) from public,anon,authenticated;
+  revoke all on function public.verify_community_report(uuid,uuid,text,double precision,double precision,double precision) from public,anon,authenticated;
+  grant execute on function public.submit_community_report(uuid,text,double precision,double precision,smallint,text,text) to service_role;
+  grant execute on function public.verify_community_report(uuid,uuid,text,double precision,double precision,double precision) to service_role;
+  grant execute on function public.nearby_incidents(double precision,double precision,double precision) to anon,authenticated,service_role;
+  grant execute on function public.nearby_cameras(double precision,double precision,double precision) to anon,authenticated,service_role;
+
+  -- Chính sách ảnh báo cáo: người đăng nhập chỉ được upload vào thư mục UID của họ.
+  insert into storage.buckets (id,name,public,file_size_limit,allowed_mime_types)
+  values ('report-photos','report-photos',true,5242880,array['image/jpeg','image/png','image/webp'])
+  on conflict (id) do nothing;
+  create policy "upload own report image" on storage.objects for insert to authenticated
+  with check (bucket_id='report-photos' and (storage.foldername(name))[1]=(select auth.uid())::text);
+
+  -- Realtime chỉ phát thông điệp có region_key, không chứa thông tin người dùng.
+  do $$ begin
+  if not exists (select 1 from pg_publication_tables where pubname='supabase_realtime' and schemaname='public' and tablename='incident_events') then
+    alter publication supabase_realtime add table public.incident_events;
+  end if;
+  end $$;
+
+================
+File: tests/camera-catalog.test.mjs
+================
+import assert from "node:assert/strict";
+import test from "node:test";
+import { parseCameraSheet, nearbyPublicCameras, distanceKm } from "../src/lib/camera-catalog.ts";
+const wrap = rows => `google.visualization.Query.setResponse(${JSON.stringify({ table: { rows: rows.map(values => ({ c: values.map(v => ({ v })) })) } })});`;
+test("camera parser reads only validated camera rows", () => {
+  const rows = [
+    [10.7769, 106.7009, "Camera Q1", "abc-123"],
+    [10.7769, 106.7009, "Duplicate", "abc-123"],
+    [91, 106.7, "Out of range", "fail"],
+    [10.77, 106.7, "Bad ID", "?id=<bad>"]
+  ];
+  const result = parseCameraSheet(wrap(rows));
+  assert.equal(result.length, 1);
+  assert.equal(result[0].title, "Camera Q1");
+  assert.match(result[0].snapshot_url, /^https:\/\/giaothong\.hochiminhcity\.gov\.vn\//);
+});
+test("camera parser does not execute JS", () => {
+  assert.throws(() => parseCameraSheet("alert(1);"));
+  assert.throws(() => parseCameraSheet("google.visualization.Query.setResponse({not-valid-json})"));
+});
+test("camera results filter and sort by distance", () => {
+  const items = parseCameraSheet(wrap([
+    [10.81, 106.71, "Far", "far"],
+    [10.777, 106.701, "Close", "close"]
+  ]));
+  const nearby = nearbyPublicCameras(items, 10.777, 106.701, 10);
+  assert.deepEqual(nearby.map(c => c.id), ["public-close", "public-far"]);
+  assert.equal(nearbyPublicCameras(items, 10.777, 106.701, .1).length, 1);
+  assert.equal(distanceKm(10, 106, 10, 106), 0);
+});
+
+================
+File: tests/config.test.mjs
+================
+import test from "node:test";
+import assert from "node:assert/strict";
+import { floodSeverity, haversineMeters, routeNearPoint, pointIsValid, getNumber } from "../src/lib/config.ts";
+
+test("ngưỡng độ sâu 9, 10, 20, 35, 36 cm", () => {
+  assert.deepEqual([9, 10, 20, 35, 36].map(floodSeverity), [0, 1, 2, 2, 3]);
+});
+test("không chấp nhận mực nước âm và NaN", () => {
+  assert.throws(() => floodSeverity(-1));
+  assert.throws(() => floodSeverity(NaN));
+});
+test("kiểm tra tọa độ, input query", () => {
+  assert.equal(pointIsValid(10.8, 106.7), true);
+  assert.equal(pointIsValid(97, 106), false);
+  assert.equal(getNumber("Infinity", 0, 30), null);
+  assert.equal(getNumber("12", 0, 30), 12);
+});
+test("nhận diện sự cố cách tuyến <130 m", () => {
+  const route = [[10.78,106.69],[10.78,106.71]];
+  assert.equal(routeNearPoint(route, [10.7803,106.7]), true);
+  assert.equal(routeNearPoint(route, [10.784,106.7]), false);
+  assert.ok(haversineMeters([10.78,106.69],[10.78,106.71]) > 2000);
+});
+
+================
+File: tests/google-maps.test.mjs
+================
+import test from "node:test";
+import assert from "node:assert/strict";
+import { buildGoogleMapsDirectionsUrl, sampleRouteWaypoints } from "../src/lib/google-maps.ts";
+const from = [10.7490, 106.6733];
+const to = [10.7585, 106.6615];
+const geometry = [from, [10.7505, 106.6721], [10.7528, 106.6692], [10.7554, 106.6660], [10.7569, 106.6640], to];
+
+test("directions link opens on Google Maps with precise origin and destination", () => {
+  const result = buildGoogleMapsDirectionsUrl({ from, to, geometry, mode: "driving" });
+  assert.ok(result);
+  const url = new URL(result);
+  assert.equal(url.origin, "https://www.google.com");
+  assert.equal(url.pathname, "/maps/dir/");
+  assert.equal(url.searchParams.get("api"), "1");
+  assert.equal(url.searchParams.get("origin"), "10.74900,106.67330");
+  assert.equal(url.searchParams.get("destination"), "10.75850,106.66150");
+  assert.equal(url.searchParams.get("dir_action"), "navigate");
+  assert.equal(url.searchParams.get("travelmode"), "driving");
+  assert.equal(url.searchParams.get("waypoints")?.split("|").length, 3);
+});
+
+test("two-wheeler mode; user can disable CityPass waypoints", () => {
+  const result = buildGoogleMapsDirectionsUrl({ from, to, geometry, mode: "two-wheeler", includeWaypoints: false });
+  const url = new URL(result);
+  assert.equal(url.searchParams.get("travelmode"), "two-wheeler");
+  assert.equal(url.searchParams.has("waypoints"), false);
+});
+
+test("rejects invalid coordinates, same start/end and unsupported mode", () => {
+  assert.equal(buildGoogleMapsDirectionsUrl({ from: [91, 0], to, geometry }), null);
+  assert.equal(buildGoogleMapsDirectionsUrl({ from, to: from, geometry }), null);
+  assert.equal(buildGoogleMapsDirectionsUrl({ from, to, geometry, mode: "fly" }), null);
+});
+
+test("distance sampling keeps order, limits to three and handles too-short or wrong route", () => {
+  const result = sampleRouteWaypoints(geometry);
+  assert.equal(result.length, 3);
+  assert.ok(result[0][0] < result[1][0] && result[1][0] < result[2][0]);
+  assert.deepEqual(sampleRouteWaypoints([from, to]), []);
+  assert.deepEqual(sampleRouteWaypoints([[91, 0], from, to]), []);
+});
+
+================
+File: tests/radar.test.mjs
+================
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { parseRadarFrames, clampRadarIndex } from '../src/lib/radar.ts';
+const valid = { host: 'https://tilecache.rainviewer.com', radar: { past: [
+  { time: 200, path: '/v2/radar/200' },
+  { time: 100, path: '/v2/radar/100' },
+  { time: 200, path: '/v2/radar/200' }
+] } };
+test('radar timeline sorted, deduplicated, templated', () => {
+  const frames = parseRadarFrames(valid);
+  assert.deepEqual(frames.map(f => f.time), [100, 200]);
+  assert.match(frames[1].tile_url, /\/256\/\{z\}\/\{x\}\/\{y\}\/2\/1_1\.png$/);
+});
+test('rejects external radar host and malformed frame', () => {
+  assert.deepEqual(parseRadarFrames({ ...valid, host: 'https://evil.example' }), []);
+  assert.deepEqual(parseRadarFrames({ ...valid, radar: { past: [{time: 123, path: '//evil'}] } }), []);
+});
+test('radar index clamped safely', () => {
+  assert.equal(clampRadarIndex(17, 4), 3);
+  assert.equal(clampRadarIndex(-4, 4), 0);
+  assert.equal(clampRadarIndex(2, 0), 0);
+});
+
+================
+File: tests/traffic.test.mjs
+================
+import assert from "node:assert/strict";
+import test from "node:test";
+import { TRAFFIC_POINTS, classifyFlow, parseFlow } from "../src/lib/traffic.ts";
+
+test("sample locations are distinct and around HCMC", () => {
+  assert.equal(TRAFFIC_POINTS.length, 10);
+  assert.equal(new Set(TRAFFIC_POINTS.map(p => p.id)).size, 10);
+  for (const p of TRAFFIC_POINTS) assert.ok(p.lat > 10.6 && p.lat < 11.0 && p.lng > 106.5 && p.lng < 107);
+});
+test("classify threshold boundary speeds, closure and invalid API data", () => {
+  assert.equal(classifyFlow(75, 100)?.level, "clear");
+  assert.equal(classifyFlow(50, 100)?.level, "slow");
+  assert.equal(classifyFlow(25, 100)?.level, "jam");
+  assert.equal(classifyFlow(24.9, 100)?.level, "heavy");
+  assert.equal(classifyFlow(1, 100, true)?.level, "closed");
+  assert.equal(classifyFlow(-1, 100), null);
+  assert.equal(classifyFlow(50, 0), null);
+});
+test("parse TomTom flow validates raw payload and labels readings point-only", () => {
+  const point = TRAFFIC_POINTS[0];
+  const reading = parseFlow(point, { flowSegmentData: { currentSpeed: 23, freeFlowSpeed: 60, roadClosure: false } });
+  assert.equal(reading?.level, "jam");
+  assert.equal(reading?.currentSpeed, 23);
+  assert.equal(parseFlow(point, { flowSegmentData: { currentSpeed: "23", freeFlowSpeed: 60 } }), null);
+  assert.equal(parseFlow(point, {}), null);
+});
+
+================
+File: tests/weather-areas.test.mjs
+================
+import assert from "node:assert/strict";
+import test from "node:test";
+import { WEATHER_POINTS, classifyWeather, parseAreaWeather } from "../src/lib/weather-areas.ts";
+const base = { current: { precipitation: 0, temperature_2m: 32.1, weather_code: 1, cloud_cover: 14, is_day: 1, time: "2026-10-08T10:30" }, hourly: { precipitation_probability: [25, 50, 35] } };
+test("weather points cover different HCMC areas", () => { assert.ok(WEATHER_POINTS.length >= 18); assert.equal(new Set(WEATHER_POINTS.map(p=>p.id)).size, WEATHER_POINTS.length); });
+test("weather is clear by day, not falsely sunny at night", () => { assert.equal(classifyWeather(0, 1, 10, true).conditionLabel, "Nắng / ít mây"); assert.equal(classifyWeather(0, 1, 10, false).conditionLabel, "Quang mây"); });
+test("rain code and precipitation take priority over cloud", () => { assert.equal(classifyWeather(0.2, 1, 0, true).condition, "rain"); assert.equal(classifyWeather(0, 80, 12, true).condition, "rain"); assert.equal(classifyWeather(0, 3, 90, true).condition, "cloud"); });
+test("weather parser validates and never silently invents readings", () => {
+ const point = WEATHER_POINTS[0];
+ assert.equal(parseAreaWeather(point, base)?.rainChanceNextHours, 50);
+ assert.equal(parseAreaWeather(point, {current: {...base.current, precipitation: null}}), null);
+ assert.equal(parseAreaWeather(point, {current: {...base.current, temperature_2m: "32"}}), null);
+ assert.equal(parseAreaWeather(point, {current: {...base.current, cloud_cover: -1}}), null);
+ assert.equal(parseAreaWeather(point, {}), null);
+});
+
+================
+File: tsconfig.json
+================
+{
+  "compilerOptions": {
+    "target": "ES2017", "lib": ["dom", "dom.iterable", "esnext"], "allowJs": true,
+    "skipLibCheck": true, "strict": true, "noEmit": true, "esModuleInterop": true,
+    "module": "esnext", "moduleResolution": "bundler", "resolveJsonModule": true,
+    "isolatedModules": true, "jsx": "preserve", "incremental": true,
+    "plugins": [{"name":"next"}], "paths": {"@/*":["./src/*"]}
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}
+
+
+================================================================
+Git Diffs
+================================================================
+================
+
+================
+
+================
+Git Diffs Staged
+================
+
+
+
+================================================================
+Git Logs
+================================================================
+
+
+
+================================================================
+End of Codebase
+================================================================
