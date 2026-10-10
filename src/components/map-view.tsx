@@ -340,6 +340,27 @@ function ViewportMarkers(props: Props) {
 
 export default function MapView(props: Props) {
   const [basemapReady, setBasemapReady] = useState(false);
+  const [heading, setHeading] = useState<number | null>(null);
+  const lastHeading = useRef<number | null>(null);
+  useEffect(() => {
+    const listener = (evt: Event) => {
+      const next = (evt as CustomEvent<number | null>).detail;
+      if (typeof next !== "number" || !Number.isFinite(next)) { setHeading(null); lastHeading.current = null; return; }
+      const target = ((next % 360) + 360) % 360;
+      const previous = lastHeading.current;
+      const delta = previous === null ? 0 : ((target - previous + 540) % 360) - 180;
+      const result = previous === null ? target : ((previous + delta * 0.35 + 360) % 360);
+      lastHeading.current = result;
+      setHeading(result);
+    };
+    window.addEventListener("citypass:nav-heading", listener);
+    return () => { window.removeEventListener("citypass:nav-heading", listener); };
+  }, []);
+  const headingIcon = useMemo(() => heading === null ? null : L.divIcon({
+    className: "citypass-nav-arrow-host",
+    html: `<div class="citypass-nav-arrow-body" style="transform:rotate(${heading.toFixed(1)}deg)"><svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true"><path d="M16 2 28 29 16 24 4 29Z" fill="#1976d2" stroke="white" stroke-width="2.8" stroke-linejoin="round"/></svg></div>`,
+    iconSize: [46, 46], iconAnchor: [23, 23]
+  }), [heading]);
   return <MapContainer center={[HCMC.lat, HCMC.lng]} zoom={12} minZoom={6} maxZoom={18} zoomControl={false} attributionControl className="map-canvas" preferCanvas>
     <BaseMapTiles onReadyChange={setBasemapReady} />
     <MapSizeSync />
@@ -364,7 +385,9 @@ export default function MapView(props: Props) {
     <ZoomControl position="bottomright" />
     {props.gps && <>
       <Circle center={props.gps.point} radius={Math.max(5, props.gps.accuracy)} pathOptions={{ color: "#1468b8", fillColor: "#5399df", fillOpacity: .12, weight: 1 }} interactive={false} />
-      <CircleMarker center={props.gps.point} radius={7} pathOptions={{ color: "#fff", weight: 3, fillColor: "#1265ad", fillOpacity: 1 }}><Popup>Vị trí GPS gần đúng · sai số ±{Math.round(props.gps.accuracy)} m</Popup></CircleMarker>
+      {headingIcon && props.navigationFollowing ?
+        <Marker position={props.gps.point} icon={headingIcon} zIndexOffset={1200} interactive={false} /> :
+        <CircleMarker center={props.gps.point} radius={7} pathOptions={{ color: "#fff", weight: 3, fillColor: "#1265ad", fillOpacity: 1 }}><Popup>Vị trí GPS gần đúng · sai số ±{Math.round(props.gps.accuracy)} m</Popup></CircleMarker>}
     </>}
     <ViewportMarkers {...props} />
     {props.routes.filter(route => route.id !== props.selectedRoute).map(route =>

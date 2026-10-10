@@ -233,7 +233,7 @@ export default function JourneyPlanner({ fromRoad, onPreview, onFocus, onShowMap
         <button type="button" className="citypass-journey-preview" onClick={() => { if (current && results) preview(current, results); onShowMap(); }}><Route size={16}/> Xem tuyến đã chọn trên bản đồ CityPass</button>
         <button type="button" className="citypass-journey-start" onClick={() => {
           if (!current || !destination || !results) return;
-          const payload: NavigationRequest = { routeId: current.id, geometry: current.geometry, from: [fromRoad.lat, fromRoad.lng], to: [destination.lat, destination.lng], vehicle: vehicleMode, durationSeconds: current.duration_s, distanceMeters: current.distance_m, trafficAware: results.traffic_aware, floodDataAvailable: results.flood_data_available };
+          const payload: NavigationRequest = { routeId: current.id, geometry: current.geometry, instructions: current.instructions ?? [], from: [fromRoad.lat, fromRoad.lng], to: [destination.lat, destination.lng], vehicle: vehicleMode, durationSeconds: current.duration_s, distanceMeters: current.distance_m, trafficAware: results.traffic_aware, floodDataAvailable: results.flood_data_available };
           preview(current, results);
           window.dispatchEvent(new CustomEvent("citypass:start-navigation", { detail: payload }));
           onShowMap();

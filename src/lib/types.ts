@@ -1,3 +1,4 @@
+import type { NavigationInstruction } from "./navigation-progress";
 export type IncidentType = "FLOOD" | "TRAFFIC_JAM";
 export type IncidentStatus = "PENDING" | "VERIFIED" | "ACTIVE";
 export type IncidentSource = "AFSC_SENSOR" | "COMMUNITY";
@@ -27,6 +28,7 @@ export interface RouteOption {
   risk_score: number;
   nearby_incidents: string[];
   traffic_delay_s?: number;
+  instructions?: NavigationInstruction[];
 }
 export interface Camera {
   id: string; title: string; lat: number; lng: number;
