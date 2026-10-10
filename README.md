@@ -1,45 +1,57 @@
-# CityPass v0.3 — Radar mưa, GPS, tìm đường và camera giao thông
+# CityPass — Hiểu đường đi, chủ động hành trình
 
-Website Next.js App Router. Bản đồ hoạt động độc lập với AFSC/Supabase. Mở `http://localhost:3000` sau khi chạy `npm run dev`.
+**Bản đồ hỗ trợ di chuyển thông minh tại TP. Hồ Chí Minh.**
 
-## Cập nhật dự án đang có
+Mỗi chuyến đi trong thành phố đều có những điều khó lường: một cơn mưa bất chợt, đoạn đường ùn tắc hay khu vực có nguy cơ ngập nước. **CityPass** ra đời với mong muốn giúp bạn nhìn rõ hơn những gì đang diễn ra trên hành trình, từ đó chủ động lựa chọn đường đi phù hợp.
 
-Chỉ tải file `Update-CityPass-v0.3.0.ps1` vào `D:\Downloads` và chạy:
+CityPass kết hợp bản đồ, thông tin thời tiết, tình hình giao thông và các cảnh báo liên quan đến đường sá trong một trải nghiệm trực quan, dễ sử dụng trên điện thoại.
 
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "D:\Downloads\Update-CityPass-v0.3.0.ps1" -TargetPath "D:\freetime\LoiRao-FloodMap"
-cd "D:\freetime\LoiRao-FloodMap"
-npm run dev
-```
+## Khám phá CityPass
 
-Giữ nguyên tên thư mục trên Windows để các lệnh cập nhật cũ không bị lỗi. Tên thương hiệu trong UI, metadata và package.json đã đổi thành **CityPass**. Nếu muốn di chuyển cả thư mục, tắt ứng dụng trước và sửa đường dẫn `-TargetPath` ở những bản vá sau.
+### 🗺️ Bản đồ thành phố trong tầm tay
 
-Script sao lưu các file trước khi sửa, không thay đổi `.env.local`; hỗ trợ nâng cấp trực tiếp từ mã gốc v0.1 hoặc v0.2 nếu file chưa tự chỉnh sửa. Sau patch script chạy typecheck/lint/test khi `node_modules` đã tồn tại.
+Khám phá các khu vực tại TP.HCM, tìm kiếm tên đường, số nhà, địa chỉ cụ thể hoặc địa điểm quen thuộc. Những lớp thông tin có thể bật hoặc tắt tùy nhu cầu, giúp bản đồ luôn dễ quan sát.
 
-## Camera giao thông
+### 🌧️ Chủ động trước những cơn mưa
 
-- Danh sách camera ảnh tĩnh được đọc **chỉ từ tab camera** của Google Sheet dùng bởi <https://rin2401.github.io/map/>. Nguồn bên ngoài có thể đổi/giới hạn/ngừng truy cập.
-- Hình camera được tải **trực tiếp từ máy chủ ảnh của Cổng thông tin giao thông TP.HCM** ở trình duyệt, chỉ khi người dùng mở camera. Không proxy, ghi hình, lưu trữ hay nhận diện biển số.
-- Ảnh cập nhật theo yêu cầu mỗi 30 giây khi popup mở, nhưng thời gian chụp gốc không xác nhận được. Nếu nguồn từ chối hotlink, app báo lỗi và có liên kết mở nguồn.
-- Camera HLS từ bảng Supabase vẫn được hỗ trợ nếu đã được cấp quyền truy cập.
-- Để tắt danh mục camera bên ngoài, thêm vào `.env.local`: `CITYPASS_PUBLIC_CAMERAS=false` rồi restart.
-- **Bản đồ/chỉ dẫn không dùng hình camera để suy ra đường ngập, không hứa tuyến an toàn.**
-- Trước khi đưa website ra công khai, xác minh quyền sử dụng và hạn mức tại phía chủ camera và tác giả dữ liệu.
+Xem tình hình thời tiết theo khu vực và các vùng mưa được ước tính từ dữ liệu khí tượng. CityPass giúp bạn tham khảo điều kiện thời tiết trước khi ra đường hoặc khi cân nhắc một lộ trình khác.
 
-## Các nguồn khác
+### 🚦 Nắm bắt tình hình giao thông
 
-- Datastore API TP.HCM với resource ID `6211b28e-34b6-474d-981b-2ab2a3681c67`: tài liệu cung cấp chỉ là cú pháp Datastore; chưa xác nhận tài nguyên đó là camera hoặc bản đồ ngập nên chưa đưa vào lớp dữ liệu.
-- CSV `edu_ds_donvi_khoi_ttgdtx_2.csv` là danh sách đơn vị giáo dục thường xuyên, không liên quan đến camera/ngập.
-- Hai repository nghiên cứu nhận diện xe/biển số là các hệ thống Python AI độc lập, chưa dùng trong MVP để tránh nhận diện biển số cá nhân và tăng chi phí vận hành.
+Quan sát thông tin giao thông và các dấu hiệu ùn tắc ở những khu vực có dữ liệu. Bạn có thể kết hợp lớp giao thông với thông tin thời tiết để hình dung chuyến đi rõ ràng hơn.
 
-## Xác minh trước khi triển khai
+### 🌊 Chú ý những khu vực có nguy cơ ngập
 
-```powershell
-npm install
-npm run typecheck
-npm run lint
-npm test
-npm run build
-```
+Tham khảo các điểm cảnh báo hoặc phản ánh về tình trạng ngập khi có dữ liệu. CityPass hướng đến việc giúp người di chuyển nhận biết những khu vực cần lưu ý, đặc biệt trong mùa mưa.
 
-Không đặt service-role key ở phía trình duyệt. Radar RainViewer là ảnh mưa trong quá khứ gần, không phải dự báo. Tuyến OSRM demo là tuyến đường ô tô chưa xác thực điều kiện xe máy và không biết ngập thật khi chưa có cảm biến.
+### 📷 Quan sát đường phố qua camera
+
+Mở hình ảnh camera giao thông tại những vị trí được hỗ trợ để tham khảo tình hình đường phố. Khả năng truy cập và thời điểm cập nhật hình ảnh phụ thuộc vào nguồn cung cấp.
+
+### 🧭 Tìm và so sánh tuyến đường
+
+Lựa chọn điểm xuất phát, điểm đến và phương tiện di chuyển như xe máy hoặc ô tô. CityPass hỗ trợ so sánh các tuyến dựa trên thông tin quãng đường, thời gian dự kiến và các tín hiệu về mưa, ngập, giao thông khi có dữ liệu.
+
+### 📍 Đồng hành trong chuyến đi
+
+Theo dõi vị trí GPS trên bản đồ, quan sát tuyến đã chọn và chuyển sang Google Maps khi muốn sử dụng chức năng điều hướng của ứng dụng đó.
+
+## Một trải nghiệm dành cho những chuyến đi hằng ngày
+
+Dù bạn đang đi học, đi làm, giao hàng hay khám phá một địa điểm mới, CityPass hướng đến ba điều đơn giản: **dễ tìm đường, dễ xem thông tin và dễ đưa ra lựa chọn**.
+
+Giao diện được ưu tiên cho điện thoại, để những thông tin cần thiết có thể được xem nhanh mà không làm bản đồ trở nên rối mắt.
+
+## Thông tin tham khảo, an toàn là ưu tiên
+
+CityPass mong muốn cung cấp thêm góc nhìn cho người tham gia giao thông, không thay thế quan sát thực tế hay các cảnh báo của cơ quan chức năng.
+
+Dữ liệu mưa có thể là dự báo hoặc ước tính theo mô hình, không khẳng định trời đang mưa tại từng vị trí. Thông tin ngập và giao thông có thể chưa đầy đủ hoặc chưa được cập nhật ở mọi tuyến đường. Hình ảnh camera phụ thuộc vào nguồn bên ngoài.
+
+**Một tuyến được CityPass đề xuất không đồng nghĩa với việc tuyến đó chắc chắn không ngập, không kẹt xe hoặc phù hợp với mọi phương tiện.** Khi di chuyển, hãy tuân thủ biển báo, luật giao thông và ưu tiên điều kiện an toàn thực tế. Google Maps cũng có thể tính lại lộ trình khác với tuyến đã chọn trên CityPass.
+
+## CityPass — Hành trình tốt hơn bắt đầu từ sự chủ động
+
+Chúng mình tin rằng việc di chuyển trong thành phố sẽ dễ chịu hơn khi mọi người có thể tiếp cận thông tin rõ ràng, trực quan và đúng lúc.
+
+**CityPass không chỉ giúp bạn tìm đường, mà còn giúp bạn hiểu hơn về hành trình phía trước.**
